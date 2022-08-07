@@ -43,8 +43,8 @@ on:
         required: true
 
 jobs:
-  deploy:
-    name: Build and deploy
+  deploy-with-bratiska-cli:
+    name: Build and deploy with bratiska-cli
     runs-on: ubuntu-latest
     defaults:
       run:
