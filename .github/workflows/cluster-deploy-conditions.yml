@@ -111,11 +111,11 @@ jobs:
             core.setFailed('There can be only one deployment to cluster. Now we have more then one. You have probably different affected files and different tag.')
 
       - id: conditions-count-check
-          name: Checking if there is only zero condition true
-          if: env.COUNT == 0
-          uses: actions/github-script@v3
-          with:
-            script: |
-              core.setFailed('You have propably missmatch between tag and folder changes. Like you have changes in `/strapi` and tag was `dev-next`. See logs above for debugging.')
+        name: Checking if there is only zero condition true
+        if: env.COUNT == 0
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('You have propably missmatch between tag and folder changes. Like you have changes in `/strapi` and tag was `dev-next`. See logs above for debugging.')
 
 
