@@ -54,11 +54,16 @@ jobs:
       prod-strapi: ${{ steps.prod-strapi.outputs.condition }}
       prod-next: ${{ steps.prod-next.outputs.condition }}
     steps:
-      - name: initialisation
+      - name: Print changes
         run: |
-          echo "changes in strapi: ${{ needs.changes.outputs.strapi }}"
-          echo "changes in next: ${{ needs.changes.outputs.next }}"
-          echo "tag: ${{ github.ref }}"
+          echo "::group::Changes :information_source:"
+          echo "### Changes in the code and tag info" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Changes in strapi: ${{ needs.changes.outputs.strapi }}" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Changes in next: ${{ needs.changes.outputs.next }}" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Tag value: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "::endgroup::"
+
+  echo "### Hello world! :arrow_right:"
 
       - id: dev-strapi
         name: Check for dev strapi
