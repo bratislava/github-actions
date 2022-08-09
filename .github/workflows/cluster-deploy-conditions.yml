@@ -102,7 +102,7 @@ jobs:
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
 
-      - id: conditions-count-check
+      - id: conditions-count-two
         name: Checking if there is only one condition true
         if: env.COUNT > 1
         uses: actions/github-script@v3
@@ -110,7 +110,7 @@ jobs:
           script: |
             core.setFailed('There can be only one deployment to cluster. Now we have more then one. You have probably different affected files and different tag.')
 
-      - id: conditions-count-check
+      - id: conditions-count-zero
         name: Checking if there is only zero condition true
         if: env.COUNT == 0
         uses: actions/github-script@v3
