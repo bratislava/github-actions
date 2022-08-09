@@ -1,3 +1,4 @@
+name: Workflow which determines, what should be deployed on strapi/next projects
 on:
   workflow_call:
     outputs:

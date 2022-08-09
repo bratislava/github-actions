@@ -1,3 +1,4 @@
+name: General workflow which initialize kubernetes with docker and runs bratiska-cli for deployment.
 on:
   workflow_call:
     inputs:
