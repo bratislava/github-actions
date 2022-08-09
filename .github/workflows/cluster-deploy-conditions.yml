@@ -56,12 +56,10 @@ jobs:
     steps:
       - name: Print changes
         run: |
-          echo "::group::Changes :information_source:"
           echo "### Changes in the code and tag info" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Changes in strapi: ${{ needs.changes.outputs.strapi }}" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Changes in next: ${{ needs.changes.outputs.next }}" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Tag value: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "::endgroup::"
 
       - id: dev-strapi
         name: Check for dev strapi
