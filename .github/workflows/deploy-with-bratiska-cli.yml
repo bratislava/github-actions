@@ -17,6 +17,11 @@ on:
         default: 'standalone'
         required: false
         type: string
+      flag:
+        description: 'Staging or production flag'
+        default: ''
+        required: false
+        type: string
       cluster:
         description: 'Kubernetes cluster name'
         default: 'tkg-innov-dev'
@@ -101,7 +106,7 @@ jobs:
         run: bratiska-cli deploy --version
 
       - name: Running build and deploy with Bratiska-cli
-        run: bratiska-cli deploy --namespace=${{ inputs.namespace }}
+        run: bratiska-cli deploy ${{ inputs.flag }} --namespace=${{ inputs.namespace }}
         continue-on-error: false
 
       - name: Print pipeline summary
