@@ -24,14 +24,17 @@ jobs:
     uses: bratislava/github-actions/.github/workflows/cluster-deploy-conditions.yml@v1.1
 
   deploy-dev:
-    name: Deploy DEV Strapi
+    name: Deploy DEV
     if: needs.conditions.outputs.dev == 'true'
-    needs: [deploy-dev-strapi, deploy-dev-next]
-    runs-on: ubuntu-latest
-    steps:
-      - name: result
-        run: |
-          echo ":soon: **staging-strapi** and then **staging-next**"
+    needs: [deploy-dev-strapi]
+    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli.yml@v1.1
+    with:
+      directory: next/
+      cluster: tkg-innov-dev
+      url: https://tkg.dev.bratislava.sk
+    secrets:
+      service-account: ${{ secrets.DEV_STANDALONE_TOKEN }}
+      registry-pass: ${{ secrets.HARBOR_REGISTRY_PASSWORD }}
 
   deploy-dev-strapi:
     name: Deploy DEV Strapi
@@ -59,6 +62,19 @@ jobs:
       service-account: ${{ secrets.DEV_STANDALONE_TOKEN }}
       registry-pass: ${{ secrets.HARBOR_REGISTRY_PASSWORD }}
 
+  deploy-staging:
+    name: Deploy STAGING
+    if: needs.conditions.outputs.staging == 'true'
+    needs: [deploy-staging-strapi]
+    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli.yml@v1.1
+    with:
+      directory: next/
+      cluster: tkg-innov-staging
+      url: https://tkg.staging.bratislava.sk
+    secrets:
+      service-account: ${{ secrets.STAGING_STANDALONE_TOKEN }}
+      registry-pass: ${{ secrets.HARBOR_REGISTRY_PASSWORD }}
+
   deploy-staging-strapi:
     name: Deploy STAGING Strapi
     needs: conditions
@@ -81,6 +97,19 @@ jobs:
       directory: next/
       cluster: tkg-innov-staging
       url: https://tkg.staging.bratislava.sk
+    secrets:
+      service-account: ${{ secrets.STAGING_STANDALONE_TOKEN }}
+      registry-pass: ${{ secrets.HARBOR_REGISTRY_PASSWORD }}
+
+  deploy-prod:
+    name: Deploy PROD
+    if: needs.conditions.outputs.prod == 'true'
+    needs: [deploy-prod-strapi]
+    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli.yml@v1.1
+    with:
+      directory: next/
+      cluster: tkg-innov-prod
+      url: https://tkg.prod.bratislava.sk
     secrets:
       service-account: ${{ secrets.STAGING_STANDALONE_TOKEN }}
       registry-pass: ${{ secrets.HARBOR_REGISTRY_PASSWORD }}
