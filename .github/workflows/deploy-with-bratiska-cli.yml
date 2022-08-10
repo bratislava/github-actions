@@ -56,18 +56,18 @@ jobs:
       run:
         working-directory: ${{ inputs.directory }}
     steps:
+      - name: Checking out
+        uses: actions/checkout@v3
+
+      - name: Directory check
+        run: pwd
+
       - name: Print pipeline summary
         run: |
           echo "### Bratiska-cli is deploying:" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Cluster: **${{ inputs.cluster }}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Project folder: **${{ inputs.directory }}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY
-
-      - name: Checking out
-        uses: actions/checkout@v3
-
-      - name: Directory check
-        run: pwd
 
       - name: Install Prerequisites -  Node.js
         uses: actions/setup-node@v3
