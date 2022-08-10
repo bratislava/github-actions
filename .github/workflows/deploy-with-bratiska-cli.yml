@@ -51,6 +51,13 @@ jobs:
       run:
         working-directory: ${{ inputs.directory }}
     steps:
+      - name: Print pipeline summary
+        run: |
+          echo "### Bratiska-cli is deploying:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Cluster: **${{ inputs.cluster }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Project folder: **${{ inputs.directory }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY
+
       - name: Checking out
         uses: actions/checkout@v3
 
@@ -96,4 +103,9 @@ jobs:
       - name: Running build and deploy with Bratiska-cli
         run: bratiska-cli deploy --namespace=${{ inputs.namespace }}
         continue-on-error: false
+
+      - name: Print pipeline summary
+        run: |
+          echo "###  Deployment summary :ship:" >> $GITHUB_STEP_SUMMARY
+          echo ":partying_face: Bratiska-cli sucessfully deployed to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
 

@@ -79,6 +79,7 @@ jobs:
         name: Check for deployment of whole project to dev
         if: startsWith(github.ref, 'refs/tags/dev') && startsWith(github.ref, 'refs/tags/dev-strapi') == false && startsWith(github.ref, 'refs/tags/dev-next') == false
         run: |
+          echo "COUNT=1" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
           echo ":soon: **dev-strapi** and then **dev-next**" >> $GITHUB_STEP_SUMMARY
 
@@ -102,6 +103,7 @@ jobs:
         name: Check for deployment of whole project to staging
         if: startsWith(github.ref, 'refs/tags/staging') && startsWith(github.ref, 'refs/tags/staging-strapi') == false && startsWith(github.ref, 'refs/tags/staging-next') == false
         run: |
+          echo "COUNT=1" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
           echo ":soon: **staging-strapi** and then **staging-next**" >> $GITHUB_STEP_SUMMARY
 
@@ -125,6 +127,7 @@ jobs:
         name: Check for deployment of whole project to prod
         if: startsWith(github.ref, 'refs/tags/prod') && startsWith(github.ref, 'refs/tags/prod-strapi') == false && startsWith(github.ref, 'refs/tags/prod-next') == false
         run: |
+          echo "COUNT=1" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
           echo ":soon: **prod-strapi** and then **prod-next**" >> $GITHUB_STEP_SUMMARY
 
@@ -152,7 +155,7 @@ jobs:
       - id: conditions-count-zero-summary
         if: env.COUNT == 0
         run: |
-          echo ":heavy_exclamation_mark: There can be only one deployment to cluster. Now we have more then one. You have probably different affected files and different tag." >> $GITHUB_STEP_SUMMARY
+          echo ":heavy_exclamation_mark: We have zero deployments based od conditions. Exiting pipeline with Fail status." >> $GITHUB_STEP_SUMMARY
 
       - id: conditions-count-two
         name: Checking if there is only one condition true
@@ -168,6 +171,6 @@ jobs:
         uses: actions/github-script@v3
         with:
           script: |
-            core.setFailed('You have propably missmatch between tag and folder changes. Like you have changes in /strapi and tag was dev-next. See logs above for debugging.')
+            core.setFailed('heavy_exclamation_mark: We have zero deployments based od conditions. Exiting pipeline with Fail status.')
 
 
