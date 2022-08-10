@@ -56,6 +56,7 @@ jobs:
     steps:
       - name: Print changes
         run: |
+          echo "### Hello world! :rocket:" >> $GITHUB_STEP_SUMMARY
           echo "### Changes in the code and tag info" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Changes in strapi: ${{ needs.changes.outputs.strapi }}" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Changes in next: ${{ needs.changes.outputs.next }}" >> $GITHUB_STEP_SUMMARY
