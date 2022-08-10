@@ -122,7 +122,6 @@ jobs:
         run: |
           echo ":heavy_exclamation_mark: There can be only one deployment to cluster. Now we have more then one. You have probably different affected files and different tag." >> $GITHUB_STEP_SUMMARY
 
-
       - id: conditions-count-two
         name: Checking if there is only one condition true
         if: env.COUNT > 1
