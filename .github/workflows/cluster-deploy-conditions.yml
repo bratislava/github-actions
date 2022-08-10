@@ -58,9 +58,9 @@ jobs:
         run: |
           echo "## Pipeline info :rocket:" >> $GITHUB_STEP_SUMMARY
           echo "### Changes in the code and tag info :information_source:" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Changes in strapi: ${{ needs.changes.outputs.strapi }}" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Changes in next: ${{ needs.changes.outputs.next }}" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Tag value: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Changes in strapi: ```${{ needs.changes.outputs.strapi }}```" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Changes in next: ```${{ needs.changes.outputs.next }}```" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Tag value: ```${{ github.ref }}```" >> $GITHUB_STEP_SUMMARY
           echo "### We are going to deploy :ship:" >> $GITHUB_STEP_SUMMARY
 
 
@@ -70,7 +70,7 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: dev-strapi" >> $GITHUB_STEP_SUMMARY
+          echo ":soon: ```dev-strapi```" >> $GITHUB_STEP_SUMMARY
 
       - id: dev-next
         name: Check for dev next
@@ -78,7 +78,7 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: dev-next" >> $GITHUB_STEP_SUMMARY
+          echo ":soon: ```dev-next```" >> $GITHUB_STEP_SUMMARY
 
       - id: staging-strapi
         name: Check for staging strapi
@@ -86,7 +86,7 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: staging-strapi" >> $GITHUB_STEP_SUMMARY
+          echo ":soon: ```staging-strapi```" >> $GITHUB_STEP_SUMMARY
 
       - id: staging-next
         name: Check for staging next
@@ -94,7 +94,7 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: staging-next" >> $GITHUB_STEP_SUMMARY
+          echo ":soon: ```staging-next```" >> $GITHUB_STEP_SUMMARY
 
       - id: prod-strapi
         name: Check for prod strapi
@@ -102,7 +102,7 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: prod-strapi " >> $GITHUB_STEP_SUMMARY
+          echo ":soon: ```prod-strapi``` " >> $GITHUB_STEP_SUMMARY
 
       - id: prod-next
         name: Check for prod next
@@ -110,7 +110,7 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: prod-next " >> $GITHUB_STEP_SUMMARY
+          echo ":soon: ```prod-next``` " >> $GITHUB_STEP_SUMMARY
 
       - id: conditions-count-two-summary
         if: env.COUNT > 1
