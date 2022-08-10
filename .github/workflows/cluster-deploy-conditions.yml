@@ -2,18 +2,27 @@ name: Workflow which determines, what should be deployed on strapi/next projects
 on:
   workflow_call:
     outputs:
+      dev:
+        description: "Returns true if dev-strapi and dev-next can be deployed"
+        value: ${{ jobs.conditions.outputs.dev }}
       dev-strapi:
         description: "Returns true if dev-strapi can be deployed"
         value: ${{ jobs.conditions.outputs.dev-strapi }}
       dev-next:
         description: "Returns true if dev-next can be deployed"
         value: ${{ jobs.conditions.outputs.dev-next }}
+      staging:
+        description: "Returns true if staging-strapi and staging-next can be deployed"
+        value: ${{ jobs.conditions.outputs.staging }}
       staging-strapi:
         description: "Returns true if staging-strapi can be deployed"
         value: ${{ jobs.conditions.outputs.staging-strapi }}
       staging-next:
         description: "Returns true if staging-next can be deployed"
         value: ${{ jobs.conditions.outputs.staging-next }}
+      prod:
+        description: "Returns true if prod-strapi and prod-next can be deployed"
+        value: ${{ jobs.conditions.outputs.prod }}
       prod-strapi:
         description: "Returns true if prod-strapi can be deployed"
         value: ${{ jobs.conditions.outputs.prod-strapi }}
@@ -22,7 +31,7 @@ on:
         value: ${{ jobs.conditions.outputs.prod-next }}
 jobs:
   changes:
-    name: Checking for directory changes
+    name: Checking for directory changes in repository
     runs-on: ubuntu-latest
     outputs:
       strapi: ${{ steps.filter.outputs.strapi }}
@@ -47,10 +56,13 @@ jobs:
     env:
       COUNT: 0
     outputs:
+      dev: ${{ steps.dev.outputs.condition }}
       dev-strapi: ${{ steps.dev-strapi.outputs.condition }}
       dev-next: ${{ steps.dev-next.outputs.condition }}
+      staging: ${{ steps.staging.outputs.condition }}
       staging-strapi: ${{ steps.staging-strapi.outputs.condition }}
       staging-next: ${{ steps.staging-next.outputs.condition }}
+      prod: ${{ steps.prod.outputs.condition }}
       prod-strapi: ${{ steps.prod-strapi.outputs.condition }}
       prod-next: ${{ steps.prod-next.outputs.condition }}
     steps:
@@ -63,6 +75,12 @@ jobs:
           echo ":arrow_right: Tag value: **${{ github.ref }}**" >> $GITHUB_STEP_SUMMARY
           echo "### We are going to deploy :ship:" >> $GITHUB_STEP_SUMMARY
 
+      - id: dev
+        name: Check for deployment of whole project to dev
+        if: startsWith(github.ref, 'refs/tags/dev') && startsWith(github.ref, ‘refs/tags/dev-strapi’) == false && startsWith(github.ref, ‘refs/tags/dev-next’) == false
+        run: |
+          echo "::set-output name=condition::true"
+          echo ":soon: **dev-strapi** and then **dev-next**" >> $GITHUB_STEP_SUMMARY
 
       - id: dev-strapi
         name: Check for dev strapi
@@ -80,6 +98,13 @@ jobs:
           echo "::set-output name=condition::true"
           echo ":soon: **dev-next**" >> $GITHUB_STEP_SUMMARY
 
+      - id: staging
+        name: Check for deployment of whole project to staging
+        if: startsWith(github.ref, 'refs/tags/staging') && startsWith(github.ref, ‘refs/tags/staging-strapi’) == false && startsWith(github.ref, ‘refs/tags/staging-next’) == false
+        run: |
+          echo "::set-output name=condition::true"
+          echo ":soon: **staging-strapi** and then **staging-next**" >> $GITHUB_STEP_SUMMARY
+
       - id: staging-strapi
         name: Check for staging strapi
         if: needs.changes.outputs.strapi == 'true' && (startsWith(github.ref, 'refs/tags/staging-strapi') || github.event.pull_request.merged == true)
@@ -95,6 +120,13 @@ jobs:
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
           echo ":soon: **staging-next**" >> $GITHUB_STEP_SUMMARY
+
+      - id: prod
+        name: Check for deployment of whole project to prod
+        if: startsWith(github.ref, 'refs/tags/prod') && startsWith(github.ref, ‘refs/tags/prod-strapi’) == false && startsWith(github.ref, ‘refs/tags/prod-next’) == false
+        run: |
+          echo "::set-output name=condition::true"
+          echo ":soon: **prod-strapi** and then **prod-next**" >> $GITHUB_STEP_SUMMARY
 
       - id: prod-strapi
         name: Check for prod strapi
