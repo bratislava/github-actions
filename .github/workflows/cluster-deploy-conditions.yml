@@ -79,7 +79,7 @@ jobs:
         name: Check for deployment of whole project to dev
         if: startsWith(github.ref, 'refs/tags/dev') && startsWith(github.ref, 'refs/tags/dev-strapi') == false && startsWith(github.ref, 'refs/tags/dev-next') == false
         run: |
-          echo "COUNT=1" >> $GITHUB_ENV
+          echo "COUNT=0" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
           echo ":soon: **dev-strapi** and then **dev-next**" >> $GITHUB_STEP_SUMMARY
 
@@ -103,7 +103,7 @@ jobs:
         name: Check for deployment of whole project to staging
         if: startsWith(github.ref, 'refs/tags/staging') && startsWith(github.ref, 'refs/tags/staging-strapi') == false && startsWith(github.ref, 'refs/tags/staging-next') == false
         run: |
-          echo "COUNT=1" >> $GITHUB_ENV
+          echo "COUNT=0" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
           echo ":soon: **staging-strapi** and then **staging-next**" >> $GITHUB_STEP_SUMMARY
 
@@ -127,7 +127,7 @@ jobs:
         name: Check for deployment of whole project to prod
         if: startsWith(github.ref, 'refs/tags/prod') && startsWith(github.ref, 'refs/tags/prod-strapi') == false && startsWith(github.ref, 'refs/tags/prod-next') == false
         run: |
-          echo "COUNT=1" >> $GITHUB_ENV
+          echo "COUNT=0" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
           echo ":soon: **prod-strapi** and then **prod-next**" >> $GITHUB_STEP_SUMMARY
 
