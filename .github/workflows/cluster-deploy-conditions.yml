@@ -101,7 +101,7 @@ jobs:
 
       - id: staging
         name: Check for deployment of whole project to staging
-        if: startsWith(github.ref, 'refs/tags/staging') && startsWith(github.ref, 'refs/tags/staging-strapi') == false && startsWith(github.ref, 'refs/tags/staging-next') == false
+        if: (startsWith(github.ref, 'refs/tags/staging') && startsWith(github.ref, 'refs/tags/staging-strapi') == false && startsWith(github.ref, 'refs/tags/staging-next') == false) || github.event.pull_request.merged == true
         run: |
           echo "COUNT=0" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
@@ -109,7 +109,7 @@ jobs:
 
       - id: staging-strapi
         name: Check for staging strapi
-        if: (needs.changes.outputs.strapi == 'true' && (startsWith(github.ref, 'refs/tags/staging-strapi') || github.event.pull_request.merged == true) || steps.staging.outputs.condition == 'true')
+        if: (needs.changes.outputs.strapi == 'true' && (startsWith(github.ref, 'refs/tags/staging-strapi')) || steps.staging.outputs.condition == 'true')
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
@@ -117,7 +117,7 @@ jobs:
 
       - id: staging-next
         name: Check for staging next
-        if: needs.changes.outputs.next == 'true' && (startsWith(github.ref, 'refs/tags/staging-next') || github.event.pull_request.merged == true)
+        if: needs.changes.outputs.next == 'true' && startsWith(github.ref, 'refs/tags/staging-next')
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
