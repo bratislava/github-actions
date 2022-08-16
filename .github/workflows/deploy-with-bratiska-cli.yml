@@ -79,8 +79,8 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Installing Bratiska-cli
-        run: yarn global add bratislava/bratiska-cli
+      - name: Installing Bratiska-cli stable
+        run: yarn global add bratislava/bratiska-cli#stable
 
       - name: Running git fetch for Bratiska-cli
         run: git fetch
