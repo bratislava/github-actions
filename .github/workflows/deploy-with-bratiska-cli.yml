@@ -109,6 +109,11 @@ jobs:
           username: ${{ inputs.username }}
           password: ${{ secrets.registry-pass }}
 
+      - name: Prints the current branch name
+        run: echo "${GITHUB_BRANCH##*/}"
+        env:
+          GITHUB_BRANCH: ${{ github.ref }}
+
       - name: Print Bratiska-cli version
         run: bratiska-cli deploy --version
 
