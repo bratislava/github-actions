@@ -109,15 +109,14 @@ jobs:
           username: ${{ inputs.username }}
           password: ${{ secrets.registry-pass }}
 
-      - name: Get Branch
+      - name: Get current branch name
         run: |
           raw=$(git branch -r --contains ${{ github.ref }})
           branch=${raw##*/}
           echo "GITHUB_BRANCH=$branch" >> $GITHUB_ENV"
-      - run: echo ${{ env.GITHUB_BRANCH }}
 
       - name: Prints the current branch name
-        run: echo "${GITHUB_BRANCH##*/}"
+      - run: echo ${{ env.GITHUB_BRANCH }}
 
       - name: Print Bratiska-cli version
         run: bratiska-cli deploy --version
