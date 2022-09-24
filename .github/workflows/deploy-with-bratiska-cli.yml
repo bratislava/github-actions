@@ -44,7 +44,7 @@ on:
         type: string
 
     secrets:
-      sentry-token:
+      SENTRY_AUTH_TOKEN:
         description: 'Token used for sentry debugging.'
         required: false
 
@@ -56,9 +56,6 @@ on:
         # kubectl get secret <service account secret> -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
         description: 'Kubernetes service account'
         required: true
-
-env:
-  SENTRY_AUTH_TOKEN: ${{ secrets.sentry-token }}
 
 jobs:
   deploy-with-bratiska-cli:
@@ -124,9 +121,6 @@ jobs:
 
       - name: Prints the current branch name
         run: echo ${{ env.GITHUB_BRANCH }}
-
-      - name: Prints sentry
-        run: echo ${{ env.SENTRY_AUTH_TOKEN }}
 
       - name: Print Bratiska-cli version
         run: bratiska-cli deploy --version
