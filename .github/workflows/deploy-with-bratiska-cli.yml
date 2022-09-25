@@ -44,7 +44,7 @@ on:
         type: string
 
     secrets:
-      SENTRY_AUTH_TOKEN:
+      sentry-token:
         description: 'Token used for sentry debugging.'
         required: false
 
@@ -128,6 +128,8 @@ jobs:
       - name: Running build and deploy with Bratiska-cli
         run: bratiska-cli deploy ${{ inputs.flag }} --namespace=${{ inputs.namespace }} ${{ inputs.debug }}
         continue-on-error: false
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.sentry-token }}
 
       - name: Print pipeline summary
         run: |
