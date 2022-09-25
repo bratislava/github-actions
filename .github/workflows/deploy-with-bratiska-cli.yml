@@ -126,10 +126,8 @@ jobs:
         run: bratiska-cli deploy --version
 
       - name: Running build and deploy with Bratiska-cli
-        run: bratiska-cli deploy ${{ inputs.flag }} --namespace=${{ inputs.namespace }} ${{ inputs.debug }}
+        run: bratiska-cli deploy ${{ inputs.flag }} --namespace=${{ inputs.namespace }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
         continue-on-error: false
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.sentry-token }}
 
       - name: Print pipeline summary
         run: |
