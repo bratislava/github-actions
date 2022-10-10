@@ -85,7 +85,7 @@ jobs:
 
       - id: dev-strapi
         name: Check for dev strapi
-        if: (needs.changes.outputs.strapi == 'true' && (startsWith(github.ref, 'refs/tags/dev-strapi')) || steps.dev.outputs.condition == 'true')
+        if: startsWith(github.ref, 'refs/tags/dev-strapi') || steps.dev.outputs.condition == 'true'
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
@@ -93,7 +93,7 @@ jobs:
 
       - id: dev-next
         name: Check for dev next
-        if: needs.changes.outputs.next == 'true' && startsWith(github.ref, 'refs/tags/dev-next')
+        if: startsWith(github.ref, 'refs/tags/dev-next')
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
@@ -109,7 +109,7 @@ jobs:
 
       - id: staging-strapi
         name: Check for staging strapi
-        if: (needs.changes.outputs.strapi == 'true' && (startsWith(github.ref, 'refs/tags/staging-strapi')) || steps.staging.outputs.condition == 'true')
+        if: startsWith(github.ref, 'refs/tags/staging-strapi') || steps.staging.outputs.condition == 'true'
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
@@ -117,7 +117,7 @@ jobs:
 
       - id: staging-next
         name: Check for staging next
-        if: needs.changes.outputs.next == 'true' && startsWith(github.ref, 'refs/tags/staging-next')
+        if: startsWith(github.ref, 'refs/tags/staging-next')
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
