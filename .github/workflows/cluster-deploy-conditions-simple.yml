@@ -33,25 +33,25 @@ jobs:
         name: Check for deployment of whole project to dev
         if: startsWith(github.ref, 'refs/tags/dev')
         run: |
-          echo "COUNT=0" >> $GITHUB_ENV
+          echo "COUNT=COUNT+1" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: **dev-next**" >> $GITHUB_STEP_SUMMARY
+          echo ":soon: **dev**" >> $GITHUB_STEP_SUMMARY
 
       - id: staging
         name: Check for deployment of whole project to staging
         if: (startsWith(github.ref, 'refs/tags/staging') || (github.event_name == 'push' && github.ref == 'refs/heads/master'))
         run: |
-          echo "COUNT=0" >> $GITHUB_ENV
+          echo "COUNT=COUNT+1" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: **staging-next**" >> $GITHUB_STEP_SUMMARY
+          echo ":soon: **staging**" >> $GITHUB_STEP_SUMMARY
 
       - id: prod
         name: Check for deployment of whole project to prod
         if: startsWith(github.ref, 'refs/tags/prod')
         run: |
-          echo "COUNT=0" >> $GITHUB_ENV
+          echo "COUNT=COUNT+1" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: **prod-next**" >> $GITHUB_STEP_SUMMARY
+          echo ":soon: **prod**" >> $GITHUB_STEP_SUMMARY
 
       - id: conditions-count-two-summary
         if: env.COUNT > 1
