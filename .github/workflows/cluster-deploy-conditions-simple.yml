@@ -14,7 +14,6 @@ on:
 jobs:
   conditions:
     name: Checking deployment conditions
-    needs: changes
     runs-on: ubuntu-latest
     env:
       COUNT: 0
