@@ -42,6 +42,11 @@ on:
         default: 'robot$github_actions'
         required: false
         type: string
+      version:
+        description: 'Bratiska-cli version'
+        default: 'stable'
+        required: false
+        type: string
 
     secrets:
       sentry-token:
@@ -86,7 +91,7 @@ jobs:
           node-version: '16'
 
       - name: Installing Bratiska-cli stable
-        run: yarn global add bratislava/bratiska-cli#stable
+        run: yarn global add bratislava/bratiska-cli#${{ inputs.version }}
 
       - name: Running git fetch for Bratiska-cli
         run: git fetch
