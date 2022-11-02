@@ -99,4 +99,4 @@ jobs:
         with:
           header: Build Conditions
           message: |
-            OUTPUT = ${{ steps.conditions.outputs.result }}
+            OUTPUT = ${{ COUNT }}
