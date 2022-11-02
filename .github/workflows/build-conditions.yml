@@ -98,5 +98,4 @@ jobs:
         with:
           header: Build Conditions
           append: true
-          message: |
-            ${{ steps.conditions.outputs.result }}
+          message: echo $GITHUB_STEP_SUMMARY
