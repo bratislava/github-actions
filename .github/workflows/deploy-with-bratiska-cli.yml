@@ -137,7 +137,7 @@ jobs:
       - name: Print pipeline summary
         run: |
           echo "###  Deployment summary :ship:" >> $GITHUB_STEP_SUMMARY
-          echo ":partying_face: Bratiska-cli sucessfully deployed to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
+          echo ":partying_face: Bratiska-cli successfully deployed to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Print pipeline comment
         if: github.event_name == 'pull_request'

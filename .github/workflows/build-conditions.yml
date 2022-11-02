@@ -1,0 +1,97 @@
+name: Workflow which determines, what should be built on strapi/next projects
+on:
+  workflow_call:
+    outputs:
+      strapi:
+        description: "Returns true if strapi can be built"
+        value: ${{ jobs.conditions.outputs.strapi }}
+      next:
+        description: "Returns true if next can be built"
+        value: ${{ jobs.conditions.outputs.next }}
+jobs:
+  changes:
+    name: Checking for directory changes in repository
+    runs-on: ubuntu-latest
+    outputs:
+      strapi: ${{ steps.filter.outputs.strapi }}
+      next: ${{ steps.filter.outputs.next }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            strapi:
+              - 'strapi/**'
+            next:
+              - 'next/**'
+  conditions:
+    name: Checking build conditions
+    needs: changes
+    runs-on: ubuntu-latest
+    env:
+      COUNT: 0
+    outputs:
+      strapi: ${{ steps.strapi.outputs.condition }}
+      next: ${{ steps.next.outputs.condition }}
+    steps:
+      - name: Print pipeline summary
+        run: |
+          echo "## Pipeline info :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "### Changes in the code :information_source:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Changes in strapi: **${{ needs.changes.outputs.strapi }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Changes in next: **${{ needs.changes.outputs.next }}**" >> $GITHUB_STEP_SUMMARY
+          echo "### We are going to build :ship:" >> $GITHUB_STEP_SUMMARY
+
+      - id: strapi
+        name: Check for build strapi
+        if: needs.changes.outputs.strapi == 'true'
+        run: |
+          echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **strapi**" >> $GITHUB_STEP_SUMMARY
+
+      - id: next
+        name: Check for build next
+        if: needs.changes.outputs.next == 'true'
+        run: |
+          echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **next**" >> $GITHUB_STEP_SUMMARY
+
+      - id: conditions-count-two-summary
+        if: env.COUNT > 1
+        run: |
+          echo ":heavy_exclamation_mark: There can be only one build at the time. Now we have more then one. You have probably different affected files." >> $GITHUB_STEP_SUMMARY
+
+      - id: conditions-count-zero-summary
+        if: env.COUNT == 0
+        run: |
+          echo ":heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status." >> $GITHUB_STEP_SUMMARY
+
+      - id: conditions-count-two
+        name: Checking if there is only one condition true
+        if: env.COUNT > 1
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('There can be only one build at the time. Now we have more then one. You have probably different affected files.')
+
+      - id: conditions-count-zero
+        name: Checking if there is only zero condition true
+        if: env.COUNT == 0
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed(:heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status.)
+
+      - name: Print pipeline comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+           {{ env.GITHUB_STEP_SUMMARY }}
+

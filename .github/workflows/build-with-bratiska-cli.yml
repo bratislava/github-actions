@@ -1,0 +1,84 @@
+name: General workflow which builds image from source using bratiska-cli.
+on:
+  workflow_call:
+    inputs:
+      directory:
+        description: 'A Folder within the repository where things should be build.'
+        default: '/'
+        required: false
+        type: string
+      debug:
+        description: 'Debug flag'
+        default: ''
+        required: false
+        type: string
+      version:
+        description: 'Bratiska-cli version'
+        default: 'stable'
+        required: false
+        type: string
+
+    secrets:
+      sentry-token:
+        description: 'Token used for sentry debugging.'
+        required: false
+
+jobs:
+  build-with-bratiska-cli:
+    name: Build with bratiska-cli
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Directory check
+        run: pwd
+
+      - name: Print pipeline summary
+        run: |
+          echo "### Bratiska-cli is building:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Project folder: **${{ inputs.directory }}**" >> $GITHUB_STEP_SUMMARY
+
+      - name: Install Prerequisites -  Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Installing Bratiska-cli version
+        run: yarn global add bratislava/bratiska-cli#${{ inputs.version }}
+
+      - name: Running git fetch for Bratiska-cli
+        run: git fetch
+
+      - name: Get current branch name
+        run: |
+          raw=$(git branch -r --contains ${{ github.ref }})
+          branch=${raw##*/}
+          echo "GITHUB_BRANCH=$branch" >> $GITHUB_ENV
+
+      - name: Prints the current branch name
+        run: echo ${{ env.GITHUB_BRANCH }}
+
+      - name: Print Bratiska-cli version
+        run: bratiska-cli deploy --version
+
+      - name: Running build with Bratiska-cli
+        run: bratiska-cli deploy --build_image_no_registry ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
+        continue-on-error: false
+
+      - name: Print pipeline summary
+        run: |
+          echo "###  Build summary :build:" >> $GITHUB_STEP_SUMMARY
+          echo ":partying_face: Bratiska-cli successfully built to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Print pipeline comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            {{ env.GITHUB_STEP_SUMMARY }}
