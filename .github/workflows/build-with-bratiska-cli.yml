@@ -75,4 +75,4 @@ jobs:
           header: Pipeline result
           append: true
           message: |
-            ${{ env.GITHUB_STEP_SUMMARY }}
+            ${{ steps.build-with-bratiska-cli.outputs.result }}
