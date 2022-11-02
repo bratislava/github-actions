@@ -75,7 +75,5 @@ jobs:
           header: Build with bratiska-cli
           append: true
           message: |
-            ```
             ${{ steps.build-with-bratiska-cli.outputs.result }}
-            ```
 
