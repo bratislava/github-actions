@@ -55,15 +55,6 @@ jobs:
       - name: Running git fetch for Bratiska-cli
         run: git fetch
 
-      - name: Get current branch name
-        run: |
-          raw=$(git branch -r --contains ${{ github.ref }})
-          branch=${raw##*/}
-          echo "GITHUB_BRANCH=$branch" >> $GITHUB_ENV
-
-      - name: Prints the current branch name
-        run: echo ${{ env.GITHUB_BRANCH }}
-
       - name: Print Bratiska-cli version
         run: bratiska-cli deploy --version
 
