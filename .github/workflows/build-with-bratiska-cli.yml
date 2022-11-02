@@ -65,7 +65,8 @@ jobs:
       - name: Print pipeline summary
         run: |
           echo "###  Build summary :build:" >> $GITHUB_STEP_SUMMARY
-          echo ":partying_face: Bratiska-cli successfully built to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
+          echo ":partying_face: Bratiska-cli successfully built." >> $GITHUB_STEP_SUMMARY
+          echo "result=$GITHUB_STEP_SUMMARY" >> $GITHUB_OUTPUT
 
       - name: Print pipeline comment
         if: github.event_name == 'pull_request'
