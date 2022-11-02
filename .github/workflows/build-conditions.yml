@@ -99,4 +99,4 @@ jobs:
         with:
           header: Build Conditions
           message: |
-            OUTPUT = ${{ env.COUNT }}
+            OUTPUT = ${{ env.GITHUB_STEP_SUMMARY }}
