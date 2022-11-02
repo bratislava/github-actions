@@ -90,7 +90,7 @@ jobs:
 
       - name: Prepare pipeline summary
         run: |
-          OUTPUT = "blah"
+          $OUTPUT = "blah"
           echo "result=$OUTPUT" >> $GITHUB_OUTPUT
 
 
