@@ -34,17 +34,18 @@ jobs:
     runs-on: ubuntu-latest
     env:
       COUNT: 0
+      SUMMARY: ''
     outputs:
       strapi: ${{ steps.strapi.outputs.condition }}
       next: ${{ steps.next.outputs.condition }}
     steps:
       - name: Print pipeline summary
         run: |
-          echo "## Pipeline info :rocket:" >> $GITHUB_STEP_SUMMARY
-          echo "### Changes in the code :information_source:" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Changes in strapi: **${{ needs.changes.outputs.strapi }}**" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Changes in next: **${{ needs.changes.outputs.next }}**" >> $GITHUB_STEP_SUMMARY
-          echo "### We are going to build :ship:" >> $GITHUB_STEP_SUMMARY
+          echo "## Pipeline info :rocket:" >> $SUMMARY
+          echo "### Changes in the code :information_source:" >> $SUMMARY
+          echo ":arrow_right: Changes in strapi: **${{ needs.changes.outputs.strapi }}**" >> $SUMMARY
+          echo ":arrow_right: Changes in next: **${{ needs.changes.outputs.next }}**" >> $SUMMARY
+          echo "### We are going to build :ship:" >> $SUMMARY
 
       - id: strapi
         name: Check for build strapi
@@ -52,7 +53,7 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: **strapi**" >> $GITHUB_STEP_SUMMARY
+          echo ":soon: **strapi**" >> $SUMMARY
 
       - id: next
         name: Check for build next
@@ -60,17 +61,17 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: **next**" >> $GITHUB_STEP_SUMMARY
+          echo ":soon: **next**" >> $SUMMARY
 
       - id: conditions-count-two-summary
         if: env.COUNT > 1
         run: |
-          echo ":heavy_exclamation_mark: There can be only one build at the time. Now we have more then one. You have probably different affected files." >> $GITHUB_STEP_SUMMARY
+          echo ":heavy_exclamation_mark: There can be only one build at the time. Now we have more then one. You have probably different affected files." >> $SUMMARY
 
       - id: conditions-count-zero-summary
         if: env.COUNT == 0
         run: |
-          echo ":heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status." >> $GITHUB_STEP_SUMMARY
+          echo ":heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status." >> $SUMMARY
 
       - id: conditions-count-two
         name: Checking if there is only one condition true
@@ -88,15 +89,10 @@ jobs:
           script: |
             core.setFailed(:heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status.)
 
-      - name: Prepare pipeline summary
-        run: |
-          echo "result=COUNT" >> $GITHUB_OUTPUT
-
-
       - name: Print pipeline comment
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: Build Conditions
           message: |
-            OUTPUT = ${{ env.GITHUB_STEP_SUMMARY }}
+            OUTPUTs = ${{ env.SUMMARY }}
