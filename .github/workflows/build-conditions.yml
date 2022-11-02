@@ -41,11 +41,11 @@ jobs:
     steps:
       - name: Print pipeline summary
         run: |
-          echo "## Pipeline info :rocket:" >> $SUMMARY
-          echo "### Changes in the code :information_source:" >> $SUMMARY
-          echo ":arrow_right: Changes in strapi: **${{ needs.changes.outputs.strapi }}**" >> $SUMMARY
-          echo ":arrow_right: Changes in next: **${{ needs.changes.outputs.next }}**" >> $SUMMARY
-          echo "### We are going to build :ship:" >> $SUMMARY
+          echo "SUMMARY = $(## Pipeline info :rocket:)"
+          echo "SUMMARY = $(### Changes in the code :information_source:)"
+          echo "SUMMARY = $(:arrow_right: Changes in strapi: **${{ needs.changes.outputs.strapi }}**)"
+          echo "SUMMARY = $(:arrow_right: Changes in next: **${{ needs.changes.outputs.next }}**)"
+          echo "SUMMARY = $(### We are going to build :ship:)"
 
       - id: strapi
         name: Check for build strapi
@@ -53,7 +53,7 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: **strapi**" >> $SUMMARY
+          echo "SUMMARY = $(:soon: **strapi**)"
 
       - id: next
         name: Check for build next
@@ -61,17 +61,17 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo ":soon: **next**" >> $SUMMARY
+          echo "SUMMARY = $(:soon: **next**)"
 
       - id: conditions-count-two-summary
         if: env.COUNT > 1
         run: |
-          echo ":heavy_exclamation_mark: There can be only one build at the time. Now we have more then one. You have probably different affected files." >> $SUMMARY
+          echo "SUMMARY = $(:heavy_exclamation_mark: There can be only one build at the time. Now we have more then one. You have probably different affected files.)"
 
       - id: conditions-count-zero-summary
         if: env.COUNT == 0
         run: |
-          echo ":heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status." >> $SUMMARY
+          echo "SUMMARY = $(:heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status.)"
 
       - id: conditions-count-two
         name: Checking if there is only one condition true
