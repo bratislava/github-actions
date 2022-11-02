@@ -90,12 +90,14 @@ jobs:
 
       - name: Prepare pipeline summary
         run: |
-          echo "result=$GITHUB_STEP_SUMMARY" >> $GITHUB_OUTPUT
+          OUTPUT = "blah"
+          echo "result=$OUTPUT" >> $GITHUB_OUTPUT
+
 
       - name: Print pipeline comment
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: Build Conditions
-          append: true
-          message: echo $GITHUB_STEP_SUMMARY
+          message: |
+            OUTPUT = ${{ steps.conditions.outputs.result }}
