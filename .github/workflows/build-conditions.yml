@@ -90,8 +90,7 @@ jobs:
 
       - name: Prepare pipeline summary
         run: |
-          $OUTPUT = "blah"
-          echo "result=$OUTPUT" >> $GITHUB_OUTPUT
+          echo "result=COUNT" >> $GITHUB_OUTPUT
 
 
       - name: Print pipeline comment
