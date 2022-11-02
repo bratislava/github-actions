@@ -99,4 +99,4 @@ jobs:
         with:
           header: Build Conditions
           message: |
-            OUTPUT = ${{ COUNT }}
+            OUTPUT = ${{ env.COUNT }}
