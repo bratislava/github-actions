@@ -94,5 +94,6 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: Build Conditions
+          recreate: true
           message: |
             OUTPUTs = ${{ env.SUMMARY }}
