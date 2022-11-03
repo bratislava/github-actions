@@ -40,9 +40,8 @@ jobs:
       next: ${{ steps.next.outputs.condition }}
     steps:
       - name: Print pipeline summary
-        id: summary
         run: |
-          echo "SUMMARY='## Pipeline info :rocket:'" >> $GITHUB_ENV
+          echo "SUMMARY=$(('## Pipeline info :rocket:'))" >> $GITHUB_ENV
 
       - id: strapi
         name: Check for build strapi
@@ -89,4 +88,4 @@ jobs:
           header: Build Conditions
           recreate: true
           message: |
-            eT: ${{ env.SUMMARY }}"
+            Ts: ${{ env.SUMMARY }}
