@@ -42,6 +42,8 @@ jobs:
       - name: Print pipeline summary
         run: |
           echo "SUMMARY=<b>Pipeline info :rocket:</b>" >> $GITHUB_ENV
+          echo "SUMMARY+=<b>Pipeline info :rocket:</b>" >> $GITHUB_ENV
+
 
       - id: strapi
         name: Check for build strapi
