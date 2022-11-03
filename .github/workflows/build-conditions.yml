@@ -34,16 +34,23 @@ jobs:
     runs-on: ubuntu-latest
     env:
       COUNT: 0
-      SUMMARY: ''
     outputs:
       strapi: ${{ steps.strapi.outputs.condition }}
       next: ${{ steps.next.outputs.condition }}
     steps:
-      - name: Print pipeline summary
-        run: |
-          echo "SUMMARY=<b>Pipeline info :rocket:</b></br>" >> $GITHUB_ENV
-          echo "SUMMARY=${{env.SUMMARY}} Pipelinesss" >> $GITHUB_ENV
 
+      - name: Print pipeline comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Build Conditions
+          recreate: true
+          message: |
+            <b> Pipeline info :rocket: </b><br/>
+            Changes in the code and tag info :information_source: <br/>
+            :arrow_right: Changes in strapi: <b>${{ needs.changes.outputs.strapi }}</b><br/>
+            :arrow_right: Changes in next: <b>${{ needs.changes.outputs.next }}</b><br/>
+            We are going to build :ship:
 
       - id: strapi
         name: Check for build strapi
@@ -52,6 +59,14 @@ jobs:
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
 
+      - name: Print pipeline comment
+        if: needs.changes.outputs.strapi == 'true'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          append: true
+          message: |
+            :soon: <b>strapi<b><br/>
+
       - id: next
         name: Check for build next
         if: needs.changes.outputs.next == 'true'
@@ -59,21 +74,21 @@ jobs:
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
 
-      - id: conditions-count-two-summary
-        if: env.COUNT > 1
-        run: |
-
-      - id: conditions-count-zero-summary
-        if: env.COUNT == 0
-        run: |
-
-      - id: conditions-count-two
-        name: Checking if there is only one condition true
-        if: env.COUNT > 1
-        uses: actions/github-script@v3
+      - name: Print pipeline comment
+        if: needs.changes.outputs.next == 'true'
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          script: |
-            core.setFailed('There can be only one build at the time. Now we have more then one. You have probably different affected files.')
+          append: true
+          message: |
+            :soon: <b>next<b><br/>
+
+      - name: Print pipeline comment
+        if: env.COUNT == 0
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          message: |
+            :heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status.
 
       - id: conditions-count-zero
         name: Checking if there is only zero condition true
@@ -83,11 +98,4 @@ jobs:
           script: |
             core.setFailed(:heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status.)
 
-      - name: Print pipeline comment
-        if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: Build Conditions
-          recreate: true
-          message: |
-            Ts: ${{ env.SUMMARY }}
+
