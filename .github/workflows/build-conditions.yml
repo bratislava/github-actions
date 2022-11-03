@@ -97,4 +97,4 @@ jobs:
           header: Build Conditions
           recreate: true
           message: |
-            The selected color is ${{ steps.summary.outputs.SUMMARY }}"
+            T: ${{ env.SUMMARY }}"
