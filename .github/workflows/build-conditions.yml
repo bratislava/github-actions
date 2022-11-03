@@ -42,7 +42,7 @@ jobs:
       - name: Print pipeline summary
         id: summary
         run: |
-          echo "SUMMARY = ## Pipeline info :rocket:" >> $GITHUB_ENV
+          echo "SUMMARY = $(## Pipeline info :rocket:)" >> $GITHUB_ENV
           echo "SUMMARY = ### Changes in the code :information_source:)" >> $GITHUB_ENV
           echo "SUMMARY = :arrow_right: Changes in strapi: **${{ needs.changes.outputs.strapi }}**" >> $GITHUB_ENV
           echo "SUMMARY = :arrow_right: Changes in next: **${{ needs.changes.outputs.next }}**" >> $GITHUB_ENV
