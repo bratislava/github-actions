@@ -63,6 +63,7 @@ jobs:
         if: needs.changes.outputs.strapi == 'true'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          header: Build Conditions
           append: true
           message: |
             :soon: <b>strapi<b><br/>
@@ -78,6 +79,7 @@ jobs:
         if: needs.changes.outputs.next == 'true'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          header: Build Conditions
           append: true
           message: |
             :soon: <b>next<b><br/>
