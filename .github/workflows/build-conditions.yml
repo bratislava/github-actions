@@ -40,12 +40,13 @@ jobs:
       next: ${{ steps.next.outputs.condition }}
     steps:
       - name: Print pipeline summary
+        id: summary
         run: |
-          echo "SUMMARY = $(## Pipeline info :rocket:)"
-          echo "SUMMARY = $(### Changes in the code :information_source:)"
-          echo "SUMMARY = $(:arrow_right: Changes in strapi: **${{ needs.changes.outputs.strapi }}**)"
-          echo "SUMMARY = $(:arrow_right: Changes in next: **${{ needs.changes.outputs.next }}**)"
-          echo "SUMMARY = $(### We are going to build :ship:)"
+          echo "SUMMARY = ## Pipeline info :rocket:" >> $GITHUB_OUTPUT
+          echo "SUMMARY = ### Changes in the code :information_source:)" >> $GITHUB_OUTPUT
+          echo "SUMMARY = :arrow_right: Changes in strapi: **${{ needs.changes.outputs.strapi }}**" >> $GITHUB_OUTPUT
+          echo "SUMMARY = :arrow_right: Changes in next: **${{ needs.changes.outputs.next }}**" >> $GITHUB_OUTPUT
+          echo "SUMMARY = ### We are going to build :ship:" >> $GITHUB_OUTPUT
 
       - id: strapi
         name: Check for build strapi
@@ -53,7 +54,7 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo "SUMMARY = $(:soon: **strapi**)"
+          echo "SUMMARY = :soon: **strapi**" >> $GITHUB_OUTPUT
 
       - id: next
         name: Check for build next
@@ -61,17 +62,17 @@ jobs:
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "::set-output name=condition::true"
-          echo "SUMMARY = $(:soon: **next**)"
+          echo "SUMMARY = :soon: **next**" >> $GITHUB_OUTPUT
 
       - id: conditions-count-two-summary
         if: env.COUNT > 1
         run: |
-          echo "SUMMARY = $(:heavy_exclamation_mark: There can be only one build at the time. Now we have more then one. You have probably different affected files.)"
+          echo "SUMMARY = :heavy_exclamation_mark: There can be only one build at the time. Now we have more then one. You have probably different affected files." >> $GITHUB_OUTPUT
 
       - id: conditions-count-zero-summary
         if: env.COUNT == 0
         run: |
-          echo "SUMMARY = $(:heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status.)"
+          echo "SUMMARY = :heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status." >> $GITHUB_OUTPUT
 
       - id: conditions-count-two
         name: Checking if there is only one condition true
@@ -96,4 +97,4 @@ jobs:
           header: Build Conditions
           recreate: true
           message: |
-            OUTPUTs = ${{ env.SUMMARY }}
+            The selected color is ${{ steps.summary.outputs.SUMMARY }}"
