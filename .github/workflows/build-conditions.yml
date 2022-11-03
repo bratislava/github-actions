@@ -42,7 +42,7 @@ jobs:
       - name: Print pipeline summary
         run: |
           echo "SUMMARY=<b>Pipeline info :rocket:</b></br>" >> $GITHUB_ENV
-          echo "SUMMARY=$SUMMARY Pipelinesss" >> $GITHUB_ENV
+          echo "SUMMARY=${{ env.SUMMARY }} Pipelinesss" >> $GITHUB_ENV
 
 
       - id: strapi
