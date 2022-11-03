@@ -46,8 +46,8 @@ jobs:
           header: Build Conditions
           recreate: true
           message: |
-            <b> Pipeline info :rocket: </b><br/>
-            Changes in the code and tag info :information_source: <br/>
+            <b> Test build pipeline info :rocket: </b><br/>
+            Changes in the code and tag info: <br/>
             :arrow_right: Changes in strapi: <b>${{ needs.changes.outputs.strapi }}</b><br/>
             :arrow_right: Changes in next: <b>${{ needs.changes.outputs.next }}</b><br/>
             We are going to build :ship:

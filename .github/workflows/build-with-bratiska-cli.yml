@@ -44,6 +44,16 @@ jobs:
           echo "### Bratiska-cli is building:" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Project folder: **${{ inputs.directory }}**" >> $GITHUB_STEP_SUMMARY
 
+      - name: Print pipeline comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Building
+          recreate: true
+          message: |
+            <b> Bratiska-cli is building: </b><br/>
+            :arrow_right: Project folder: <b>${{ inputs.directory }}</b><br/>
+
       - name: Install Prerequisites -  Node.js
         uses: actions/setup-node@v3
         with:
@@ -66,14 +76,13 @@ jobs:
         run: |
           echo "###  Build summary :build:" >> $GITHUB_STEP_SUMMARY
           echo ":partying_face: Bratiska-cli successfully built." >> $GITHUB_STEP_SUMMARY
-          echo "result=$GITHUB_STEP_SUMMARY" >> $GITHUB_OUTPUT
 
       - name: Print pipeline comment
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          header: Build with bratiska-cli
+          header: Building
           append: true
           message: |
-            ${{ steps.build-with-bratiska-cli.outputs.result }}
-
+            <b> Build summary :build: </b><br/>
+            :partying_face: Bratiska-cli successfully built.
