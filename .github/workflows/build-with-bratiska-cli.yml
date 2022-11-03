@@ -74,5 +74,4 @@ jobs:
           header: Build Conditions
           append: true
           message: |
-            <b> Build summary: </b><br/>
-            :partying_face: Bratiska-cli successfully built.
+            :partying_face: Bratiska-cli successfully built project in ${{ inputs.directory }}.
