@@ -98,6 +98,6 @@ jobs:
         uses: actions/github-script@v3
         with:
           script: |
-            core.setFailed(:heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status.)
+            core.setFailed(':heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline with Fail status.')
 
 
