@@ -100,6 +100,7 @@ jobs:
         uses: Azure/setup-kubectl@v2.1
 
       - name: Kubernetes set service account token
+        # to obtain token run: kubectl get secret <service account secret> -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
         run: kubectl config set-credentials default --token=${{ secrets.service-account }}
 
       - name: Kubernetes set server with certificate account token
