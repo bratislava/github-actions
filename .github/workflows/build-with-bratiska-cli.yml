@@ -58,20 +58,37 @@ jobs:
       - name: Print Bratiska-cli version
         run: bratiska-cli deploy --version
 
-      - name: Running build with Bratiska-cli
-        run: bratiska-cli deploy --env=staging --build_image_no_registry ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
+      - name: Creating kustomize file with Bratiska-cli
+        run: bratiska-cli deploy --env=staging --build_kustomize ${{ inputs.flag }} ${{ inputs.debug }} --image=image_url_namespace
         continue-on-error: false
 
-      - name: Print pipeline summary
+      - name: Print pipeline summary - kustomize create
         run: |
           echo "###  Build summary :build:" >> $GITHUB_STEP_SUMMARY
-          echo ":partying_face: Bratiska-cli successfully built." >> $GITHUB_STEP_SUMMARY
+          echo ":partying_face: Bratiska-cli successfully created an kustomize file." >> $GITHUB_STEP_SUMMARY
 
-      - name: Print pipeline comment
+      - name: Print pipeline comment - kustomize build
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: Build Conditions
           append: true
           message: |
-            :partying_face: Bratiska-cli successfully built ${{ inputs.directory }}.
+            :partying_face: Bratiska-cli successfully created an kustomize file.
+
+      - name: Running build with Bratiska-cli
+        run: bratiska-cli deploy --env=staging --build_image_no_registry ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
+        continue-on-error: false
+
+      - name: Print pipeline summary - image build
+        run: |
+          echo ":partying_face: Bratiska-cli successfully built an image from path: ${{ inputs.directory }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Print pipeline comment - image build
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Build Conditions
+          append: true
+          message: |
+            :partying_face: Bratiska-cli successfully built an image from path: ${{ inputs.directory }}
