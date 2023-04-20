@@ -21,7 +21,7 @@ on:
         description: 'Define the type of machine to run the job on'
         type: string
         required: false
-        default: '["ubuntu-latest"]'
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
 
     secrets:
       sentry-token:

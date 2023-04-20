@@ -6,7 +6,7 @@ on:
         description: 'Define the type of machine to run the job on'
         type: string
         required: false
-        default: '["ubuntu-latest"]'
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
     outputs:
       dev:
         description: "Returns true if dev-strapi and dev-next can be deployed"
