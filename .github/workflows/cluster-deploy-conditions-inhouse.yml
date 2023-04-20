@@ -1,0 +1,188 @@
+name: Workflow which determines, what should be deployed on strapi/next projects
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["ubuntu-latest"]'
+    outputs:
+      dev:
+        description: "Returns true if dev-strapi and dev-next can be deployed"
+        value: ${{ jobs.conditions.outputs.dev }}
+      dev-strapi:
+        description: "Returns true if dev-strapi can be deployed"
+        value: ${{ jobs.conditions.outputs.dev-strapi }}
+      dev-next:
+        description: "Returns true if dev-next can be deployed"
+        value: ${{ jobs.conditions.outputs.dev-next }}
+      staging:
+        description: "Returns true if staging-strapi and staging-next can be deployed"
+        value: ${{ jobs.conditions.outputs.staging }}
+      staging-strapi:
+        description: "Returns true if staging-strapi can be deployed"
+        value: ${{ jobs.conditions.outputs.staging-strapi }}
+      staging-next:
+        description: "Returns true if staging-next can be deployed"
+        value: ${{ jobs.conditions.outputs.staging-next }}
+      prod:
+        description: "Returns true if prod-strapi and prod-next can be deployed"
+        value: ${{ jobs.conditions.outputs.prod }}
+      prod-strapi:
+        description: "Returns true if prod-strapi can be deployed"
+        value: ${{ jobs.conditions.outputs.prod-strapi }}
+      prod-next:
+        description: "Returns true if prod-next can be deployed"
+        value: ${{ jobs.conditions.outputs.prod-next }}
+jobs:
+  changes:
+    name: Checking for directory changes in repository
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    outputs:
+      strapi: ${{ steps.filter.outputs.strapi }}
+      next: ${{ steps.filter.outputs.next }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            strapi:
+              - 'strapi/**'
+            next:
+              - 'next/**'
+  conditions:
+    name: Checking deployment conditions
+    needs: changes
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    env:
+      COUNT: 0
+    outputs:
+      dev: ${{ steps.dev.outputs.condition }}
+      dev-strapi: ${{ steps.dev-strapi.outputs.condition }}
+      dev-next: ${{ steps.dev-next.outputs.condition }}
+      staging: ${{ steps.staging.outputs.condition }}
+      staging-strapi: ${{ steps.staging-strapi.outputs.condition }}
+      staging-next: ${{ steps.staging-next.outputs.condition }}
+      prod: ${{ steps.prod.outputs.condition }}
+      prod-strapi: ${{ steps.prod-strapi.outputs.condition }}
+      prod-next: ${{ steps.prod-next.outputs.condition }}
+    steps:
+      - name: Print pipeline summary
+        run: |
+          echo "## Pipeline info :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "### Changes in the code and tag info :information_source:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Changes in strapi: **${{ needs.changes.outputs.strapi }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Changes in next: **${{ needs.changes.outputs.next }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Tag value: **${{ github.ref }}**" >> $GITHUB_STEP_SUMMARY
+          echo "### We are going to deploy :ship:" >> $GITHUB_STEP_SUMMARY
+
+      - id: dev
+        name: Check for deployment of whole project to dev
+        if: startsWith(github.ref, 'refs/tags/dev') && startsWith(github.ref, 'refs/tags/dev-strapi') == false && startsWith(github.ref, 'refs/tags/dev-next') == false
+        run: |
+          echo "COUNT=0" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **dev-next**" >> $GITHUB_STEP_SUMMARY
+
+      - id: dev-strapi
+        name: Check for dev strapi
+        if: startsWith(github.ref, 'refs/tags/dev-strapi') || steps.dev.outputs.condition == 'true'
+        run: |
+          echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **dev-strapi**" >> $GITHUB_STEP_SUMMARY
+
+      - id: dev-next
+        name: Check for dev next
+        if: startsWith(github.ref, 'refs/tags/dev-next')
+        run: |
+          echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **dev-next**" >> $GITHUB_STEP_SUMMARY
+
+      - id: staging
+        name: Check for deployment of whole project to staging
+        if: (startsWith(github.ref, 'refs/tags/staging') && startsWith(github.ref, 'refs/tags/staging-strapi') == false && startsWith(github.ref, 'refs/tags/staging-next') == false) || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+        run: |
+          echo "COUNT=0" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **staging-next**" >> $GITHUB_STEP_SUMMARY
+
+      - id: staging-strapi
+        name: Check for staging strapi
+        if: startsWith(github.ref, 'refs/tags/staging-strapi') || steps.staging.outputs.condition == 'true'
+        run: |
+          echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **staging-strapi**" >> $GITHUB_STEP_SUMMARY
+
+      - id: staging-next
+        name: Check for staging next
+        if: startsWith(github.ref, 'refs/tags/staging-next')
+        run: |
+          echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **staging-next**" >> $GITHUB_STEP_SUMMARY
+
+      - id: prod
+        name: Check for deployment of whole project to prod
+        if: startsWith(github.ref, 'refs/tags/prod') && startsWith(github.ref, 'refs/tags/prod-strapi') == false && startsWith(github.ref, 'refs/tags/prod-next') == false
+        run: |
+          echo "COUNT=0" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **prod-next**" >> $GITHUB_STEP_SUMMARY
+
+      - id: prod-strapi
+        name: Check for prod strapi
+        if: startsWith(github.ref, 'refs/tags/prod-strapi') || steps.prod.outputs.condition == 'true'
+        run: |
+          echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **prod-strapi** " >> $GITHUB_STEP_SUMMARY
+
+      - id: prod-next
+        name: Check for prod next
+        if: startsWith(github.ref, 'refs/tags/prod-next')
+        run: |
+          echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **prod-next** " >> $GITHUB_STEP_SUMMARY
+
+      - id: conditions-count-two-summary
+        if: env.COUNT > 1
+        run: |
+          echo ":heavy_exclamation_mark: There can be only one deployment to cluster. Now we have more then one. You have probably different affected files and different tag." >> $GITHUB_STEP_SUMMARY
+
+      - id: conditions-count-zero-summary
+        if: env.COUNT == 0
+        run: |
+          echo ":heavy_exclamation_mark: We have zero deployments based on conditions. Exiting pipeline with Fail status." >> $GITHUB_STEP_SUMMARY
+
+      - id: conditions-count-two
+        name: Checking if there is only one condition true
+        if: env.COUNT > 1
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('There can be only one deployment to cluster. Now we have more then one. You have probably different affected files and different tag.')
+
+      - id: conditions-count-zero
+        name: Checking if there is only zero condition true
+        if: env.COUNT == 0
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed(':heavy_exclamation_mark: We have zero deployments based on conditions. Exiting pipeline with Fail status.')
+
+      - name: Print pipeline comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+           {{ env.GITHUB_STEP_SUMMARY }}
+

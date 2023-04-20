@@ -1,0 +1,94 @@
+name: Workflow which determines, where should be deployed
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["ubuntu-latest"]'
+    outputs:
+      dev:
+        description: "Returns true if dev-strapi and dev-next can be deployed"
+        value: ${{ jobs.conditions.outputs.dev }}
+      staging:
+        description: "Returns true if staging-strapi and staging-next can be deployed"
+        value: ${{ jobs.conditions.outputs.staging }}
+      prod:
+        description: "Returns true if prod-strapi and prod-next can be deployed"
+        value: ${{ jobs.conditions.outputs.prod }}
+jobs:
+  conditions:
+    name: Checking deployment conditions
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    env:
+      COUNT: 0
+    outputs:
+      dev: ${{ steps.dev.outputs.condition }}
+      staging: ${{ steps.staging.outputs.condition }}
+      prod: ${{ steps.prod.outputs.condition }}
+    steps:
+      - name: Print pipeline summary
+        run: |
+          echo "## Pipeline info :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "### Changes in the code and tag info :information_source:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Tag value: **${{ github.ref }}**" >> $GITHUB_STEP_SUMMARY
+          echo "### We are going to deploy :ship:" >> $GITHUB_STEP_SUMMARY
+
+      - id: dev
+        name: Check for deployment of whole project to dev
+        if: startsWith(github.ref, 'refs/tags/dev')
+        run: |
+          echo "COUNT=COUNT+1" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **dev**" >> $GITHUB_STEP_SUMMARY
+
+      - id: staging
+        name: Check for deployment of whole project to staging
+        if: (startsWith(github.ref, 'refs/tags/staging') || (github.event_name == 'push' && github.ref == 'refs/heads/master'))
+        run: |
+          echo "COUNT=COUNT+1" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **staging**" >> $GITHUB_STEP_SUMMARY
+
+      - id: prod
+        name: Check for deployment of whole project to prod
+        if: startsWith(github.ref, 'refs/tags/prod')
+        run: |
+          echo "COUNT=COUNT+1" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+          echo ":soon: **prod**" >> $GITHUB_STEP_SUMMARY
+
+      - id: conditions-count-two-summary
+        if: env.COUNT > 1
+        run: |
+          echo ":heavy_exclamation_mark: There can be only one deployment to cluster. Now we have more then one. You have probably different affected files and different tag." >> $GITHUB_STEP_SUMMARY
+
+      - id: conditions-count-zero-summary
+        if: env.COUNT == 0
+        run: |
+          echo ":heavy_exclamation_mark: We have zero deployments based on conditions. Exiting pipeline with Fail status." >> $GITHUB_STEP_SUMMARY
+
+      - id: conditions-count-two
+        name: Checking if there is only one condition true
+        if: env.COUNT > 1
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('There can be only one deployment to cluster. Now we have more then one. You have probably different affected files and different tag.')
+
+      - id: conditions-count-zero
+        name: Checking if there is only zero condition true
+        if: env.COUNT == 0
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('heavy_exclamation_mark: We have zero deployments based on conditions. Exiting pipeline with Fail status.')
+
+      - name: Print pipeline comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+           {{ env.GITHUB_STEP_SUMMARY }}
+
