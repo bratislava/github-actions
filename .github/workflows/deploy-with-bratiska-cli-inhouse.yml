@@ -1,0 +1,155 @@
+name: General workflow which initialize kubernetes with docker and runs bratiska-cli for deployment.
+on:
+  workflow_call:
+    inputs:
+      directory:
+        description: 'A Folder within the repository where deployment should be called'
+        default: '/'
+        required: false
+        type: string
+      registry:
+        description: 'Registry where should be built images stored'
+        default: 'harbor.bratislava.sk'
+        required: false
+        type: string
+      namespace:
+        description: 'Namespace where should be build app deployed'
+        default: 'standalone'
+        required: false
+        type: string
+      flag:
+        description: 'Staging or production flag'
+        default: ''
+        required: false
+        type: string
+      debug:
+        description: 'Debug flag'
+        default: ''
+        required: false
+        type: string
+      cluster:
+        description: 'Kubernetes cluster name'
+        default: 'tkg-innov-dev'
+        required: true
+        type: string
+      url:
+        description: 'Kubernetes cluster url'
+        default: 'https://tkg.dev.bratislava.sk'
+        required: true
+        type: string
+      username:
+        description: 'Docker username'
+        default: 'robot$github_actions'
+        required: false
+        type: string
+      version:
+        description: 'Bratiska-cli version'
+        default: 'stable'
+        required: false
+        type: string
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+
+    secrets:
+      sentry-token:
+        description: 'Token used for sentry debugging.'
+        required: false
+
+      registry-pass:
+        description: 'Password for registry where docker is uploading images'
+        required: true
+        
+      service-account:
+        # kubectl get secret <service account secret> -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
+        description: 'Kubernetes service account'
+        required: true
+
+jobs:
+  deploy-with-bratiska-cli:
+    name: Build and deploy with bratiska-cli
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Directory check
+        run: pwd
+
+      - name: Print pipeline summary
+        run: |
+          echo "### Bratiska-cli is deploying:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Cluster: **${{ inputs.cluster }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Project folder: **${{ inputs.directory }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY
+
+      - name: Install Prerequisites - Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Installing Bratiska-cli stable
+        run: |
+          yarn global add bratislava/bratiska-cli#${{ inputs.version }}
+          echo "~/.yarn/bin" >> $GITHUB_PATH
+
+      - name: Running git fetch for Bratiska-cli
+        run: git fetch
+
+      - name: Kubectl tool installer
+        uses: Azure/setup-kubectl@v2.1
+
+      - name: Kubernetes set service account token
+        # to obtain token run: kubectl get secret <service account secret> -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
+        run: kubectl config set-credentials default --token=${{ secrets.service-account }}
+
+      - name: Kubernetes set server with certificate account token
+        run: kubectl config set-cluster ${{ inputs.cluster }}  --insecure-skip-tls-verify --server=${{ inputs.url }}
+
+      - name: Kubernetes set context cluster
+        run: kubectl config set-context ${{ inputs.cluster }} --cluster=${{ inputs.cluster }} --user=default
+
+      - name: Kubernetes use context
+        run: kubectl config use-context ${{ inputs.cluster }}
+
+      - name: Login to Harbor
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ inputs.username }}
+          password: ${{ secrets.registry-pass }}
+
+      - name: Get current branch name
+        run: |
+          raw=$(git branch -r --contains ${{ github.ref }})
+          branch=${raw##*/}
+          echo "GITHUB_BRANCH=$branch" >> $GITHUB_ENV
+
+      - name: Prints the current branch name
+        run: echo ${{ env.GITHUB_BRANCH }}
+
+      - name: Print Bratiska-cli version
+        run: bratiska-cli deploy --version
+
+      - name: Running build and deploy with Bratiska-cli
+        run: bratiska-cli deploy ${{ inputs.flag }} --namespace=${{ inputs.namespace }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
+        continue-on-error: false
+
+      - name: Print pipeline summary
+        run: |
+          echo "###  Deployment summary :ship:" >> $GITHUB_STEP_SUMMARY
+          echo ":partying_face: Bratiska-cli successfully deployed to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Print pipeline comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            {{ env.GITHUB_STEP_SUMMARY }}

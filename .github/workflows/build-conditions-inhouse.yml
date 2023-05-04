@@ -1,0 +1,107 @@
+name: Workflow which determines, what should be built on strapi/next projects
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+    outputs:
+      strapi:
+        description: "Returns true if strapi can be built"
+        value: ${{ jobs.conditions.outputs.strapi }}
+      next:
+        description: "Returns true if next can be built"
+        value: ${{ jobs.conditions.outputs.next }}
+jobs:
+  changes:
+    name: Checking for directory changes in repository
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    outputs:
+      strapi: ${{ steps.filter.outputs.strapi }}
+      next: ${{ steps.filter.outputs.next }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            strapi:
+              - 'strapi/**'
+            next:
+              - 'next/**'
+  conditions:
+    name: Checking build conditions
+    needs: changes
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    env:
+      COUNT: 0
+    outputs:
+      strapi: ${{ steps.strapi.outputs.condition }}
+      next: ${{ steps.next.outputs.condition }}
+    steps:
+
+      - name: Print pipeline comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Build Conditions
+          recreate: true
+          message: |
+            <b> Test build pipeline info :rocket: </b><br/>
+            Changes in the code and tag info: <br/>
+            :arrow_right: Changes in strapi: <b>${{ needs.changes.outputs.strapi }}</b><br/>
+            :arrow_right: Changes in next: <b>${{ needs.changes.outputs.next }}</b><br/>
+            We are going to build :ship:
+
+      - id: strapi
+        name: Check for build strapi
+        if: needs.changes.outputs.strapi == 'true'
+        run: |
+          echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+
+      - name: Print pipeline comment
+        if: needs.changes.outputs.strapi == 'true'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Build Conditions
+          append: true
+          message: |
+            :soon: <b>strapi<b><br/>
+
+      - id: next
+        name: Check for build next
+        if: needs.changes.outputs.next == 'true'
+        run: |
+          echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
+          echo "::set-output name=condition::true"
+
+      - name: Print pipeline comment
+        if: needs.changes.outputs.next == 'true'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Build Conditions
+          append: true
+          message: |
+            :soon: <b>next<b><br/>
+
+      - name: Print pipeline comment
+        if: env.COUNT == 0
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          message: |
+            :heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline.
+
+      - id: conditions-count-zero
+        name: Checking if there is only zero condition true
+        if: env.COUNT == 0
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.notice(':heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline.')
