@@ -66,7 +66,7 @@ jobs:
         run: bratiska-cli deploy --version
 
       - name: Creating kustomize file with Bratiska-cli
-        run: bratiska-cli build_kustomize --env=staging ${{ inputs.flag }} ${{ inputs.debug }} --no_image_repo_check --image=image_url_placeholder --dry_run
+        run: bratiska-cli build_kustomize --env=staging ${{ inputs.flag }} ${{ inputs.debug }} --no_image_repo_check --image=image_url_placeholder
         continue-on-error: false
 
       - name: Print pipeline summary - kustomize create
