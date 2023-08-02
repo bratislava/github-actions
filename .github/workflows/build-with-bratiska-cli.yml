@@ -56,10 +56,10 @@ jobs:
         run: git fetch
 
       - name: Print Bratiska-cli version
-        run: bratiska-cli deploy --version
+        run: bratiska-cli --version
 
       - name: Creating kustomize file with Bratiska-cli
-        run: bratiska-cli deploy --env=staging --build_kustomize ${{ inputs.flag }} ${{ inputs.debug }} --no_image_repo_check --image=image_url_placeholder --dry_run
+        run: bratiska-cli build_kustomize --env=staging --build_kustomize ${{ inputs.flag }} ${{ inputs.debug }} --no_image_repo_check --image=image_url_placeholder --dry_run
         continue-on-error: false
 
       - name: Print pipeline summary - kustomize create
@@ -77,7 +77,7 @@ jobs:
             :partying_face: Bratiska-cli successfully created an kustomize file.
 
       - name: Running build with Bratiska-cli
-        run: bratiska-cli deploy --env=staging --build_image_no_registry ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
+        run: bratiska-cli build_image --env=staging --build_image_no_registry ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
         continue-on-error: false
 
       - name: Print pipeline summary - image build
