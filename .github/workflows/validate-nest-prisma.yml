@@ -15,12 +15,12 @@ jobs:
         with:
           node-version: '16'
 
-      - run: yarn --frozen-lockfile
+      - run: npm ci
       - run: cp .env.example .env
       - run: npx prisma generate
 
       - name: Run unit tests
-        run: yarn test
+        run: npm run test
 
   lint:
     name: Code quality
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: '16'
 
-      - run: yarn --frozen-lockfile
+      - run: npm ci
       - run: cp .env.example .env
       - run: npx prisma generate
 
@@ -57,4 +57,4 @@ jobs:
         run: npx tsc
 
       - name: ESlint check
-        run: yarn lint
+        run: npm run lint
