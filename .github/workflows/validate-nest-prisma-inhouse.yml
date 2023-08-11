@@ -1,0 +1,66 @@
+name: Validate nest-prisma code
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - run: yarn --frozen-lockfile
+      - run: cp .env.example .env
+      - run: npx prisma generate
+
+      - name: Run unit tests
+        run: yarn test
+
+  lint:
+    name: Code quality
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - run: yarn --frozen-lockfile
+      - run: cp .env.example .env
+      - run: npx prisma generate
+
+      - name: Typescript reviewdog check
+        uses: EPMatt/reviewdog-action-tsc@v1
+        with:
+          # Change reviewdog reporter if you need
+          # [github-pr-check,github-check,github-pr-review].
+          # More about reviewdog reporters at
+          # https://github.com/reviewdog/reviewdog#reporters
+          reporter: github-check
+          # Change reporter level if you need
+          # [info,warning,error].
+          # More about reviewdog reporter level at
+          # https://github.com/reviewdog/reviewdog#reporters
+          level: warning
+          workdir: ./src
+
+      - name: Typescript check
+        run: npx tsc
+
+      - name: ESlint check
+        run: yarn lint
