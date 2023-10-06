@@ -34,7 +34,7 @@ jobs:
         if: (startsWith(github.ref, 'refs/tags/dev') || (github.event_name == 'pull_request'))
         run: |
           echo "COUNT=COUNT+1" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **dev**" >> $GITHUB_STEP_SUMMARY
 
       - id: staging
@@ -42,7 +42,7 @@ jobs:
         if: (startsWith(github.ref, 'refs/tags/staging') || (github.event_name == 'push' && github.ref == 'refs/heads/master'))
         run: |
           echo "COUNT=COUNT+1" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **staging**" >> $GITHUB_STEP_SUMMARY
 
       - id: prod
@@ -50,7 +50,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/prod')
         run: |
           echo "COUNT=COUNT+1" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **prod**" >> $GITHUB_STEP_SUMMARY
 
       - id: conditions-count-two-summary

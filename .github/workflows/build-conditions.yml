@@ -57,7 +57,7 @@ jobs:
         if: needs.changes.outputs.strapi == 'true'
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
 
       - name: Print pipeline comment
         if: needs.changes.outputs.strapi == 'true'
@@ -73,7 +73,7 @@ jobs:
         if: needs.changes.outputs.next == 'true'
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
 
       - name: Print pipeline comment
         if: needs.changes.outputs.next == 'true'

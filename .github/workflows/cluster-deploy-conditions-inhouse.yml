@@ -86,7 +86,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/dev') && startsWith(github.ref, 'refs/tags/dev-strapi') == false && startsWith(github.ref, 'refs/tags/dev-next') == false
         run: |
           echo "COUNT=0" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **dev-next**" >> $GITHUB_STEP_SUMMARY
 
       - id: dev-strapi
@@ -94,7 +94,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/dev-strapi') || steps.dev.outputs.condition == 'true'
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **dev-strapi**" >> $GITHUB_STEP_SUMMARY
 
       - id: dev-next
@@ -102,7 +102,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/dev-next')
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **dev-next**" >> $GITHUB_STEP_SUMMARY
 
       - id: staging
@@ -110,7 +110,7 @@ jobs:
         if: (startsWith(github.ref, 'refs/tags/staging') && startsWith(github.ref, 'refs/tags/staging-strapi') == false && startsWith(github.ref, 'refs/tags/staging-next') == false) || (github.event_name == 'push' && github.ref == 'refs/heads/master')
         run: |
           echo "COUNT=0" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **staging-next**" >> $GITHUB_STEP_SUMMARY
 
       - id: staging-strapi
@@ -118,7 +118,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/staging-strapi') || steps.staging.outputs.condition == 'true'
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **staging-strapi**" >> $GITHUB_STEP_SUMMARY
 
       - id: staging-next
@@ -126,7 +126,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/staging-next')
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **staging-next**" >> $GITHUB_STEP_SUMMARY
 
       - id: prod
@@ -134,7 +134,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/prod') && startsWith(github.ref, 'refs/tags/prod-strapi') == false && startsWith(github.ref, 'refs/tags/prod-next') == false
         run: |
           echo "COUNT=0" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **prod-next**" >> $GITHUB_STEP_SUMMARY
 
       - id: prod-strapi
@@ -142,7 +142,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/prod-strapi') || steps.prod.outputs.condition == 'true'
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **prod-strapi** " >> $GITHUB_STEP_SUMMARY
 
       - id: prod-next
@@ -150,7 +150,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/prod-next')
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
-          echo "::set-output name=condition::true"
+          echo "condition=true" >> $GITHUB_OUTPUT
           echo ":soon: **prod-next** " >> $GITHUB_STEP_SUMMARY
 
       - id: conditions-count-two-summary
