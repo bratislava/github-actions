@@ -71,7 +71,7 @@ jobs:
         working-directory: ${{ inputs.directory }}
     steps:
       - name: Checking out
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -86,7 +86,7 @@ jobs:
           echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY
 
       - name: Install Prerequisites -  Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
 
@@ -97,7 +97,7 @@ jobs:
         run: git fetch
 
       - name: Kubectl tool installer
-        uses: Azure/setup-kubectl@v3
+        uses: Azure/setup-kubectl@v4
 
       - name: Kubernetes set service account token
         # to obtain token run: kubectl get secret <service account secret> -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
