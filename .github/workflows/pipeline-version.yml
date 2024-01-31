@@ -9,5 +9,5 @@ jobs:
     steps:
       - name: Version
         run: |
-          echo "Pipelines version: 2.0.0"
-          echo "Pipelines version: 2.0.0" >> $GITHUB_STEP_SUMMARY
+          echo "Pipelines version: 2.0.1"
+          echo "Pipelines version: 2.0.1" >> $GITHUB_STEP_SUMMARY
