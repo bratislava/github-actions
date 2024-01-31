@@ -70,6 +70,10 @@ jobs:
       run:
         working-directory: ${{ inputs.directory }}
     steps:
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.0.0"
+
       - name: Checking out
         uses: actions/checkout@v4
         with:
@@ -97,7 +101,7 @@ jobs:
         run: git fetch
 
       - name: Kubectl tool installer
-        uses: Azure/setup-kubectl@3
+        uses: Azure/setup-kubectl@v3
 
       - name: Kubernetes set service account token
         # to obtain token run: kubectl get secret <service account secret> -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp

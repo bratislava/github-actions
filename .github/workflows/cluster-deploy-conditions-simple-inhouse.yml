@@ -28,6 +28,10 @@ jobs:
       staging: ${{ steps.staging.outputs.condition }}
       prod: ${{ steps.prod.outputs.condition }}
     steps:
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.0.0"  
+
       - name: Print pipeline summary
         run: |
           echo "## Pipeline info :rocket:" >> $GITHUB_STEP_SUMMARY

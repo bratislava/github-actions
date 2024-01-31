@@ -22,6 +22,10 @@ jobs:
       strapi: ${{ steps.filter.outputs.strapi }}
       next: ${{ steps.filter.outputs.next }}
     steps:
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.0.0"
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
