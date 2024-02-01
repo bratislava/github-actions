@@ -31,10 +31,6 @@ jobs:
       run:
         working-directory: ${{ inputs.directory }}
     steps:
-      - name: Pipelines Version
-        run: |
-          echo "Pipelines version: 2.0.0"  
-
       - name: Checking out
         uses: actions/checkout@v4
         with:
@@ -42,6 +38,10 @@ jobs:
 
       - name: Directory check
         run: pwd
+
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.0.1"
 
       - name: Print pipeline summary
         run: |
