@@ -70,14 +70,14 @@ jobs:
       run:
         working-directory: ${{ inputs.directory }}
     steps:
-      - name: Pipelines Version
-        run: |
-          echo "Pipelines version: 2.0.1"
-
       - name: Checking out
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.0.1"
 
       - name: Directory check
         run: pwd
