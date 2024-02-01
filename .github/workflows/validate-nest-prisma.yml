@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.0.0"
+          echo "Pipelines version: 2.0.1"
 
       - name: Checkout code
         uses: actions/checkout@v4
