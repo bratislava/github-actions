@@ -8,12 +8,11 @@ on:
 jobs:
   conditions:
     name: Checking deployment conditions
-    needs: changes
     runs-on: ubuntu-latest
     env:
       COUNT: 0
     outputs:
-      instance: ${{ steps.dev.outputs.condition }}
+      instance: ${{ steps.clean.outputs.instance }}
     steps:
 
     - id: clean
