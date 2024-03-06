@@ -63,7 +63,7 @@ jobs:
           - id: no-cluster
 
     - id: no-values-file
-      if: -f env.VALUES_FILE == false
+      if: [-f env.VALUES_FILE] == false
       uses: actions/github-script@v3
       with:
         script: |
