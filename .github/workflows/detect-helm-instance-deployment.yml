@@ -24,12 +24,12 @@ jobs:
 
     - name: Print variable
       run: |
-        echo env.TAG
+        echo ${{ env.TAG }}
 
     - id: split
       name: Split tag name
       run: |
-        echo "instance=${TAG##*/}" >> $GITHUB_OUTPUT
+        echo "instance=${TAG##*-}" >> $GITHUB_OUTPUT
 
     - name: Print variable
       run: |
