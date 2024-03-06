@@ -12,7 +12,7 @@ jobs:
     env:
       COUNT: 0
     outputs:
-      instance: ${{ steps.clean.outputs.instance }}
+      instance: ${{ steps.split.outputs.instance }}
     steps:
 
     - id: clean
@@ -22,17 +22,15 @@ jobs:
       run: |
         echo "TAG=${REF_NAME##*/}" >> $GITHUB_ENV
 
-    - name: Print variable
+    - name: Print Tag
       run: |
         echo ${{ env.TAG }}
 
     - id: split
       name: Split tag name
-      env:
-        TAG: ${{ env.TAG }}
       run: |
         echo "instance=${TAG##*-}" >> $GITHUB_OUTPUT
 
-    - name: Print variable
+    - name: Print Helm Instance
       run: |
         echo ${{ steps.split.outputs.instance }}
