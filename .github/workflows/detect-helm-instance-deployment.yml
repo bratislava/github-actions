@@ -33,7 +33,7 @@ jobs:
     - id: cluster
       name: Get cluster
       run: |
-        echo "CLUSTER=${TAG-*%%}" >> $GITHUB_ENV
+        echo "CLUSTER=${TAG%%-*}" >> $GITHUB_ENV
 
     - id: out
       name: Set ouptuts
