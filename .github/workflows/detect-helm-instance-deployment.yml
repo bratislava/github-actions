@@ -1,0 +1,37 @@
+name: Workflow which detects what helm instance should be deployed
+on:
+  workflow_call:
+    outputs:
+      instance:
+        description: "Returns value of instance"
+        value: ${{ jobs.conditions.outputs.dev }}
+jobs:
+  conditions:
+    name: Checking deployment conditions
+    needs: changes
+    runs-on: ubuntu-latest
+    env:
+      COUNT: 0
+    outputs:
+      instance: ${{ steps.dev.outputs.condition }}
+    steps:
+
+    - id: clean
+      name: Clean tag name
+      env:
+        TAG: ${{ github.ref_name }}
+      run: echo "::set-output name=tag::${TAG##*/}"
+
+    - name: Print variable
+      run: |
+        echo ${{ steps.clean.outputs.tag }}
+
+    - id: split
+      name: Split tag name
+      env:
+        TAG: ${{ steps.clean.outputs.tag }}
+      run: echo "::set-output name=instance::${TAG##*-}"
+
+    - name: Print variable
+      run: |
+        echo ${{ steps.clean.outputs.instance }}
