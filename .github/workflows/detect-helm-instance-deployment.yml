@@ -18,18 +18,18 @@ jobs:
     - id: clean
       name: Clean tag name
       env:
-        TAG: ${{ github.ref_name }}
-      run: echo "::set-output name=tag::${TAG##*/}"
+        REF_NAME: ${{ github.ref_name }}
+      run: |
+        echo "TAG=${REF_NAME##*/}" >> $GITHUB_ENV
 
     - name: Print variable
       run: |
-        echo ${{ steps.clean.outputs.tag }}
+        echo env.TAG
 
     - id: split
       name: Split tag name
-      env:
-        TAG: ${{ steps.clean.outputs.tag }}
-      run: echo "::set-output name=instance::${TAG##*-}"
+      run: |
+        echo "instance=${TAG##*/}" >> $GITHUB_OUTPUT
 
     - name: Print variable
       run: |
