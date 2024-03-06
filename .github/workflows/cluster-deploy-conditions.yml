@@ -44,7 +44,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.0.1"    
+          echo "Pipelines version: 2.1.0"    
 
       - uses: dorny/paths-filter@v3
         id: filter
