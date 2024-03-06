@@ -2,11 +2,14 @@ name: Workflow which detects what helm instance should be deployed
 on:
   workflow_call:
     outputs:
+      cluster:
+        description: "cluster type as dev, staging or prod"
+        value: ${{ jobs.detect.outputs.dev }}
       instance:
         description: "Returns value of instance"
-        value: ${{ jobs.conditions.outputs.dev }}
+        value: ${{ jobs.detect.outputs.dev }}
 jobs:
-  conditions:
+  detect:
     name: Checking deployment conditions
     runs-on: ubuntu-latest
     env:
@@ -22,15 +25,31 @@ jobs:
       run: |
         echo "TAG=${REF_NAME##*/}" >> $GITHUB_ENV
 
-    - name: Print Tag
+    - id: instance
+      name: Get instance
       run: |
-        echo ${{ env.TAG }}
+        echo "INSTANCE=${TAG##*-}" >> $GITHUB_ENV
 
-    - id: split
-      name: Split tag name
+    - id: cluster
+      name: Get cluster
       run: |
-        echo "instance=${TAG##*-}" >> $GITHUB_OUTPUT
+        echo "CLUSTER=${TAG-*##}" >> $GITHUB_ENV
 
-    - name: Print Helm Instance
+    - id: out
+      name: Set ouptuts
       run: |
-        echo ${{ steps.split.outputs.instance }}
+        echo "cluster=${CLUSTER}" >> $GITHUB_OUTPUT
+        echo "instance=${INSTANCE}" >> $GITHUB_OUTPUT
+
+    - name: Print Outputs
+      run: |
+        echo ${{ steps.out.outputs.cluster }}
+        echo ${{ steps.out.outputs.instance }}
+
+    - id: no-instance
+      if: env.INSTANCE == ''
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed(':heavy_exclamation_mark: We have no helm instances. Exiting pipeline with Fail status.')
+
