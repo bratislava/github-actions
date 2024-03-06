@@ -35,4 +35,4 @@ jobs:
 
     - name: Print variable
       run: |
-        echo ${{ steps.clean.outputs.instance }}
+        echo ${{ steps.split.outputs.instance }}
