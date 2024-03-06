@@ -28,8 +28,10 @@ jobs:
 
     - id: split
       name: Split tag name
+      env:
+        TAG: ${{ env.TAG }}
       run: |
-        echo "instance=${$TAG##*-}" >> $GITHUB_OUTPUT
+        echo "instance=${TAG##*-}" >> $GITHUB_OUTPUT
 
     - name: Print variable
       run: |
