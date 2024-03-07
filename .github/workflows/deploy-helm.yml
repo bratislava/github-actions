@@ -16,7 +16,7 @@ on:
         type: string
       registry:
         description: 'Registry where are helm charts stored'
-        default: 'harbor.bratislava.sk/helm-charts'
+        default: 'harbor.bratislava.sk'
         required: false
         type: string
       cluster:
@@ -94,7 +94,7 @@ jobs:
 
       - name: Pull chart from Harbor
         run: |
-          helm pull oci://${{ inputs.registry }}/${{ inputs.chart }}      
+          helm pull oci://${{ inputs.registry }}/helm-charts/${{ inputs.chart }}      
 
       - name: Kubectl tool installer
         uses: Azure/setup-kubectl@v3
