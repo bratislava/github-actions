@@ -49,8 +49,8 @@ on:
         required: true
 
 jobs:
-  deploy-helm:
-    name: Deploy helm with bratiska-cli
+  deploy:
+    name: Deploy helm
     runs-on: ubuntu-latest
     steps:
       - name: Checking out
@@ -110,7 +110,7 @@ jobs:
           chart: ${{ inputs.chart }}
           token: ${{ github.token }}
           repo: ${{ inputs.registry }}
-          repo-alias: chartmuseum
+          repo-alias: helm-charts
           repo-username: ${{ inputs.username }}
           repo-password: ${{ secrets.registry-pass }}
           value-files: >-
