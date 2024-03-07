@@ -16,7 +16,7 @@ on:
         type: string
       registry:
         description: 'Registry where are helm charts stored'
-        default: 'harbor.bratislava.sk'
+        default: 'harbor.bratislava.sk/helm-charts'
         required: false
         type: string
       cluster:
@@ -107,7 +107,6 @@ jobs:
           token: ${{ github.token }}
           helm: helm
           repo: ${{ inputs.registry }}
-          repo-alias: helm-charts
           repo-username: ${{ inputs.username }}
           repo-password: ${{ secrets.registry-pass }}
           value-files: >-
