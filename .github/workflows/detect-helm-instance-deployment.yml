@@ -67,22 +67,9 @@ jobs:
         script: |
           core.setFailed(':heavy_exclamation_mark: We have no cluster. Exiting pipeline with Fail status.')
 
-
-
     - id: check_files
       name: Check file existence
       uses: andstor/file-existence-action@v3
       with:
         files: ${{ env.VALUES_FILE }}
         fail: true
-
-    - name: Files exist
-      if: steps.check_files.outputs.files_exists == true
-      run: echo "All files exist!"
-
-    - id: no-values-file
-      if: steps.check_files.outputs.files_exists == false
-      uses: actions/github-script@v4
-      with:
-        script: |
-          core.setFailed(':heavy_exclamation_mark: We have no values file. Exiting pipeline with Fail status.')
