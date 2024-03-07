@@ -52,9 +52,6 @@ jobs:
   deploy-helm:
     name: Deploy helm with bratiska-cli
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ inputs.directory }}
     steps:
       - name: Checking out
         uses: actions/checkout@v4
