@@ -38,7 +38,7 @@ jobs:
     - id: out
       name: Set ouptuts
       run: |
-        echo "VALUES_FILE=/${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_ENV
+        echo "VALUES_FILE=deployments/${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_ENV
         echo "cluster=${CLUSTER}" >> $GITHUB_OUTPUT
         echo "instance=${INSTANCE}" >> $GITHUB_OUTPUT
 
@@ -66,6 +66,7 @@ jobs:
       uses: andstor/file-existence-action@v3
       with:
         files: ${{ env.VALUES_FILE }}
+        fail: true
 
     - name: Files exist
       if: steps.check_files.outputs.files_exists == true
