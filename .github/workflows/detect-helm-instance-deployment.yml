@@ -68,11 +68,11 @@ jobs:
         files: ${{ env.VALUES_FILE }}
 
     - name: Files exist
-      if: steps.check_files.outputs.exists == 'true'
+      if: steps.check_files.outputs.exists == true
       run: echo "All files exist!"
 
     - id: no-values-file
-      if: steps.check_files.outputs.exists == 'false'
+      if: steps.check_files.outputs.exists == false
       uses: actions/github-script@v3
       with:
         script: |
