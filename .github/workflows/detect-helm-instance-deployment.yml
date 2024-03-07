@@ -63,7 +63,7 @@ jobs:
 
     - name: Print Folder
       run: |
-        ls
+        echo ls;
 
     - id: check_files
       name: Check file existence
