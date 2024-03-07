@@ -78,3 +78,9 @@ jobs:
       with:
         files: ${{ steps.out.outputs.valuesfile }}
         fail: true
+
+    - name: Print info
+      run: |
+        echo "## Detected helm deployment :rocket:" >> $GITHUB_STEP_SUMMARY
+        echo ":arrow_right: Instance: **${{ steps.out.outputs.instance }}**" >> $GITHUB_STEP_SUMMARY
+        echo ":arrow_right: Cluster: **${{ steps.out.outputs.cluster }}**" >> $GITHUB_STEP_SUMMARY
