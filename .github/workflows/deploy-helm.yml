@@ -109,6 +109,10 @@ jobs:
         run: |
           helm install ${{ inputs.instance }} -n ${{ inputs.namespace }} oci://${{ inputs.registry }}/helm-charts/${{ inputs.chart }} -f ${{ inputs.valuesfile }}
 
+      - name: Helm get manifest
+        run: |
+          helm get manifest ${{ inputs.instance }}
+
       - name: Print pipeline summary
         run: |
           echo "###  Deployment summary :ship:" >> $GITHUB_STEP_SUMMARY
