@@ -23,6 +23,7 @@ jobs:
     - name: Pipelines Version
       run: |
         echo "Pipelines version: 2.1.0"
+        
     - id: clean
       name: Clean tag name
       env:
