@@ -61,6 +61,10 @@ jobs:
         script: |
           core.setFailed(':heavy_exclamation_mark: We have no cluster. Exiting pipeline with Fail status.')
 
+    - name: Print Folder
+      run: |
+        ls
+
     - id: check_files
       name: Check file existence
       uses: andstor/file-existence-action@v3
