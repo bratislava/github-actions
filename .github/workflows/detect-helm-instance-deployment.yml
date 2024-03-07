@@ -4,7 +4,7 @@ on:
     outputs:
       cluster:
         description: "cluster type as dev, staging or prod"
-        value: ${{ jobs.detect.outputs.declusterv }}
+        value: ${{ jobs.detect.outputs.cluster }}
       instance:
         description: "Returns value of instance"
         value: ${{ jobs.detect.outputs.instance }}
