@@ -60,7 +60,6 @@ jobs:
       with:
         script: |
           core.setFailed(':heavy_exclamation_mark: We have no cluster. Exiting pipeline with Fail status.')
-          - id: no-cluster
 
     - id: no-values-file
       if: [-f env.VALUES_FILE] == false
