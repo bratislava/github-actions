@@ -16,7 +16,7 @@ on:
         type: string
       registry:
         description: 'Registry where are helm charts stored'
-        default: 'harbor.bratislava.sk/helm-charts'
+        default: 'https://harbor.bratislava.sk/helm-charts'
         required: false
         type: string
       cluster:
