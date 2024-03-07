@@ -12,12 +12,17 @@ jobs:
   detect:
     name: Checking deployment conditions
     runs-on: ubuntu-latest
-    env:
-      COUNT: 0
     outputs:
       instance: ${{ steps.split.outputs.instance }}
     steps:
+    - name: Checking out
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
+    - name: Pipelines Version
+      run: |
+        echo "Pipelines version: 2.1.0"
     - id: clean
       name: Clean tag name
       env:
@@ -38,7 +43,7 @@ jobs:
     - id: out
       name: Set ouptuts
       run: |
-        echo "VALUES_FILE=/deployments/${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_ENV
+        echo "VALUES_FILE=deployments/${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_ENV
         echo "cluster=${CLUSTER}" >> $GITHUB_OUTPUT
         echo "instance=${INSTANCE}" >> $GITHUB_OUTPUT
 
@@ -61,13 +66,7 @@ jobs:
         script: |
           core.setFailed(':heavy_exclamation_mark: We have no cluster. Exiting pipeline with Fail status.')
 
-    - name: Print Folder
-      run: |
-        pwd;
 
-    - name: Print Folder
-      run: |
-        ls;
 
     - id: check_files
       name: Check file existence
