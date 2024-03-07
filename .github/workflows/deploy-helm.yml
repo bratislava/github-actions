@@ -107,7 +107,7 @@ jobs:
 
       - name: Helm install to kubernetes
         run: |
-          helm install ${{ inputs.instance }} oci://${{ inputs.registry }}/helm-charts/${{ inputs.chart }} -f ${{ inputs.valuesfile }}
+          helm install ${{ inputs.instance }} -n ${{ inputs.namespace }} oci://${{ inputs.registry }}/helm-charts/${{ inputs.chart }} -f ${{ inputs.valuesfile }}
 
       - name: Print pipeline summary
         run: |
