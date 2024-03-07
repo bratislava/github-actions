@@ -69,3 +69,13 @@ jobs:
         script: |
           core.setFailed(':heavy_exclamation_mark: We have no values file. Exiting pipeline with Fail status.')
 
+    - id: check_files
+      name: Check file existence
+      uses: thebinaryfelix/check-file-existence-action@v1
+      with:
+        files: env.VALUES_FILE
+
+    - name: Files exist
+      if: steps.check_files.outputs.exists == 'true'
+      # Only runs if all of the files exist
+      run: echo "All files exist!"
