@@ -65,7 +65,7 @@ jobs:
       name: Check file existence
       uses: andstor/file-existence-action@v3
       with:
-        files: ${VALUES_FILE}
+        files: ${{ VALUES_FILE }}
 
     - name: Files exist
       if: steps.check_files.outputs.exists == 'true'
