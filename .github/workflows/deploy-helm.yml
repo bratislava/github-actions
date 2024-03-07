@@ -36,7 +36,7 @@ on:
         type: string
       username:
         description: 'Helm registry username'
-        default: 'robot$github_actions'
+        default: robot\$github_actions
         required: false
         type: string
     secrets:
