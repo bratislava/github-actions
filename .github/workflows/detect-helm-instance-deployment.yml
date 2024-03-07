@@ -56,6 +56,7 @@ jobs:
       run: |
         echo ${{ steps.out.outputs.cluster }}
         echo ${{ steps.out.outputs.instance }}
+        echo ${{ steps.out.outputs.valuesfile }}
 
     - id: no-instance
       if: env.INSTANCE == ''

@@ -43,7 +43,6 @@ on:
       registry-pass:
         description: 'Password for registry where docker is uploading images'
         required: true
-        
       service-account:
         # kubectl get secret default-token-7kvjs -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
         description: 'Kubernetes service account'
@@ -121,10 +120,6 @@ jobs:
             [
               ${{ inputs.valuesfile }}
             ]
-
-      - name: Running build and deploy with Bratiska-cli
-        run: bratiska-cli deploy ${{ inputs.flag }} --namespace=${{ inputs.namespace }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
-        continue-on-error: false
 
       - name: Print pipeline summary
         run: |
