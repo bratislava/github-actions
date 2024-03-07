@@ -103,12 +103,13 @@ jobs:
           password: ${{ secrets.registry-pass }}
 
       - name: Deploy helm to kubernetes
-        uses: vimeda/helm@v1
+        uses: vimeda/helm@v1.7.0
         with:
           release: ${{ inputs.instance }}
           namespace: ${{ inputs.namespace }}
           chart: ${{ inputs.chart }}
           token: ${{ github.token }}
+          helm: helm3
           repo: ${{ inputs.registry }}
           repo-alias: helm-charts
           repo-username: ${{ inputs.username }}
