@@ -107,6 +107,7 @@ jobs:
           token: ${{ github.token }}
           helm: helm
           repo: ${{ inputs.registry }}
+          repo-alias: ${{ inputs.chart }}
           repo-username: ${{ inputs.username }}
           repo-password: ${{ secrets.registry-pass }}
           value-files: >-
