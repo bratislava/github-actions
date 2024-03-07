@@ -87,10 +87,7 @@ jobs:
 
       - name: Login to Harbor
         run: |
-          helm registry login \
-            --username ${{ inputs.username }} \
-            --password ${{ secrets.registry-pass }} \
-            ${{ inputs.registry }}
+          echo "${{ secrets.registry-pass }}" | helm registry login -u "${{ inputs.username }}" --password-stdin "${{ inputs.registry }}"
 
       - name: Pull chart from Harbor
         run: |
