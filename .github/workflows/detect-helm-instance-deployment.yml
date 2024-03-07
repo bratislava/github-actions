@@ -63,7 +63,7 @@ jobs:
 
     - id: check_files
       name: Check file existence
-      uses: thebinaryfelix/check-file-existence-action@v1
+      uses: andstor/file-existence-action@v3
       with:
         files: env.VALUES_FILE
 
