@@ -38,7 +38,7 @@ jobs:
     - id: out
       name: Set ouptuts
       run: |
-        echo "VALUES_FILE=${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_ENV
+        echo "VALUES_FILE=/${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_ENV
         echo "cluster=${CLUSTER}" >> $GITHUB_OUTPUT
         echo "instance=${INSTANCE}" >> $GITHUB_OUTPUT
 
@@ -68,12 +68,12 @@ jobs:
         files: ${{ env.VALUES_FILE }}
 
     - name: Files exist
-      if: steps.check_files.outputs.exists == true
+      if: steps.check_files.outputs.files_exists == true
       run: echo "All files exist!"
 
     - id: no-values-file
-      if: steps.check_files.outputs.exists == false
-      uses: actions/github-script@v3
+      if: steps.check_files.outputs.files_exists == false
+      uses: actions/github-script@v4
       with:
         script: |
           core.setFailed(':heavy_exclamation_mark: We have no values file. Exiting pipeline with Fail status.')
