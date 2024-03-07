@@ -6,6 +6,11 @@ on:
         description: 'Name of helm chart'
         required: true
         type: string
+      chartpath:
+        description: 'Path to chart in registry'
+        default: 'helm-charts/'
+        required: false
+        type: string
       instance:
         description: 'Type of helm deploy instance'
         required: true
@@ -72,29 +77,10 @@ jobs:
           echo ":arrow_right: Instance: **${{ inputs.instance }}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Values File: **${{ inputs.valuesfile }}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Cluster: **${{ inputs.cluster }}**" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY
-
-      - name: Install Prerequisites -  Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Helm tool installer
-        uses: azure/setup-helm@v4.1.0
-
-      - name: Helm version
-        run: helm version
-
-      - name: Login to Harbor
-        run: |
-          echo "${{ secrets.registry-pass }}" | helm registry login -u "${{ inputs.username }}" --password-stdin "${{ inputs.registry }}"
-
-      - name: Pull chart from Harbor
-        run: |
-          helm pull oci://${{ inputs.registry }}/helm-charts/${{ inputs.chart }}      
+          echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY  
 
       - name: Kubectl tool installer
-        uses: Azure/setup-kubectl@v3
+        uses: Azure/setup-kubectl@v4
 
       - name: Kubernetes set service account token
         # to obtain token run: kubectl get secret <service account secret> -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
@@ -109,27 +95,24 @@ jobs:
       - name: Kubernetes use context
         run: kubectl config use-context ${{ inputs.cluster }}
 
-#      - name: Deploy helm to kubernetes
-#        uses: vimeda/helm@v1.7.0
-#        with:
-#          release: ${{ inputs.instance }}
-#          namespace: ${{ inputs.namespace }}
-#          chart: ${{ inputs.chart }}
-#          token: ${{ github.token }}
-#          helm: helm
-#          repo: ${{ inputs.registry }}
-#          repo-alias: ${{ inputs.chart }}
-#          repo-username: ${{ inputs.username }}
-#          repo-password: ${{ secrets.registry-pass }}
-#          value-files: >-
-#            [
-#              ${{ inputs.valuesfile }}
-#            ]
+      - name: Helm tool installer
+        uses: azure/setup-helm@v4.1.0
+
+      - name: Helm version
+        run: helm version
+
+      - name: Login to Harbor
+        run: |
+          echo "${{ secrets.registry-pass }}" | helm registry login -u "${{ inputs.username }}" --password-stdin "${{ inputs.registry }}"
+
+      - name: Helm install to kubernetes
+        run: |
+          helm install ${{ inputs.instance }} oci://${{ inputs.registry }}/helm-charts/${{ inputs.chart }} -f ${{ inputs.valuesfile }}
 
       - name: Print pipeline summary
         run: |
           echo "###  Deployment summary :ship:" >> $GITHUB_STEP_SUMMARY
-          echo ":partying_face: Bratiska-cli successfully deployed to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
+          echo ":partying_face: Helm successfully deployed **${{ inputs.instance }}** to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Print pipeline comment
         if: github.event_name == 'pull_request'
