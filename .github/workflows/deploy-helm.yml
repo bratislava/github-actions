@@ -16,7 +16,7 @@ on:
         type: string
       registry:
         description: 'Registry where are helm charts stored'
-        default: 'https://harbor.bratislava.sk/helm-charts'
+        default: 'harbor.bratislava.sk/helm-charts'
         required: false
         type: string
       cluster:
@@ -85,6 +85,17 @@ jobs:
       - name: Helm version
         run: helm version
 
+      - name: Login to Harbor
+        run: |
+          helm registry login \
+            --username ${{ inputs.username }} \
+            --password ${{ secrets.registry-pass }} \
+            ${{ inputs.registry }}
+
+      - name: Pull chart from Harbor
+        run: |
+          helm pull oci://${{ inputs.registry }}/${{ inputs.chart }}      
+
       - name: Kubectl tool installer
         uses: Azure/setup-kubectl@v3
 
@@ -101,22 +112,22 @@ jobs:
       - name: Kubernetes use context
         run: kubectl config use-context ${{ inputs.cluster }}
 
-      - name: Deploy helm to kubernetes
-        uses: vimeda/helm@v1.7.0
-        with:
-          release: ${{ inputs.instance }}
-          namespace: ${{ inputs.namespace }}
-          chart: ${{ inputs.chart }}
-          token: ${{ github.token }}
-          helm: helm
-          repo: ${{ inputs.registry }}
-          repo-alias: ${{ inputs.chart }}
-          repo-username: ${{ inputs.username }}
-          repo-password: ${{ secrets.registry-pass }}
-          value-files: >-
-            [
-              ${{ inputs.valuesfile }}
-            ]
+#      - name: Deploy helm to kubernetes
+#        uses: vimeda/helm@v1.7.0
+#        with:
+#          release: ${{ inputs.instance }}
+#          namespace: ${{ inputs.namespace }}
+#          chart: ${{ inputs.chart }}
+#          token: ${{ github.token }}
+#          helm: helm
+#          repo: ${{ inputs.registry }}
+#          repo-alias: ${{ inputs.chart }}
+#          repo-username: ${{ inputs.username }}
+#          repo-password: ${{ secrets.registry-pass }}
+#          value-files: >-
+#            [
+#              ${{ inputs.valuesfile }}
+#            ]
 
       - name: Print pipeline summary
         run: |
