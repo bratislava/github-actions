@@ -82,6 +82,9 @@ jobs:
       - name: Helm tool installer
         uses: azure/setup-helm@v4.1.0
 
+      - name: Helm version
+        run: helm version
+
       - name: Kubectl tool installer
         uses: Azure/setup-kubectl@v3
 
