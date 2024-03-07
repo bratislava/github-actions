@@ -109,7 +109,6 @@ jobs:
           namespace: ${{ inputs.namespace }}
           chart: ${{ inputs.chart }}
           token: ${{ github.token }}
-          helm: helm3
           repo: ${{ inputs.registry }}
           repo-alias: helm-charts
           repo-username: ${{ inputs.username }}
