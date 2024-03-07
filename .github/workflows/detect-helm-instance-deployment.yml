@@ -4,10 +4,14 @@ on:
     outputs:
       cluster:
         description: "cluster type as dev, staging or prod"
-        value: ${{ jobs.detect.outputs.dev }}
+        value: ${{ jobs.detect.outputs.declusterv }}
       instance:
         description: "Returns value of instance"
-        value: ${{ jobs.detect.outputs.dev }}
+        value: ${{ jobs.detect.outputs.instance }}
+      valuesfile:
+        description: "Returns path of valuesfile"
+        value: ${{ jobs.detect.outputs.valuesfile }}
+
 jobs:
   detect:
     name: Checking deployment conditions
@@ -44,9 +48,9 @@ jobs:
     - id: out
       name: Set ouptuts
       run: |
-        echo "VALUES_FILE=deployments/${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_ENV
         echo "cluster=${CLUSTER}" >> $GITHUB_OUTPUT
         echo "instance=${INSTANCE}" >> $GITHUB_OUTPUT
+        echo "valuesfile=deployments/${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_OUTPUT
 
     - name: Print Outputs
       run: |
@@ -71,5 +75,5 @@ jobs:
       name: Check file existence
       uses: andstor/file-existence-action@v3
       with:
-        files: ${{ env.VALUES_FILE }}
+        files: ${{ steps.out.outputs.valuesfile }}
         fail: true
