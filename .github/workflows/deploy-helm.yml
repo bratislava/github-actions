@@ -79,6 +79,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Helm tool installer
+        uses: azure/setup-helm@v4.1.0
+
       - name: Kubectl tool installer
         uses: Azure/setup-kubectl@v3
 
@@ -95,13 +98,6 @@ jobs:
       - name: Kubernetes use context
         run: kubectl config use-context ${{ inputs.cluster }}
 
-      - name: Login to Harbor
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ inputs.registry }}
-          username: ${{ inputs.username }}
-          password: ${{ secrets.registry-pass }}
-
       - name: Deploy helm to kubernetes
         uses: vimeda/helm@v1.7.0
         with:
@@ -109,6 +105,7 @@ jobs:
           namespace: ${{ inputs.namespace }}
           chart: ${{ inputs.chart }}
           token: ${{ github.token }}
+          helm: helm
           repo: ${{ inputs.registry }}
           repo-alias: helm-charts
           repo-username: ${{ inputs.username }}
