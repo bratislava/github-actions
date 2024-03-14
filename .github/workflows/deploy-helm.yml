@@ -157,7 +157,7 @@ jobs:
         with:
           name: ${{ inputs.command }} ${{ inputs.instance }} ${{ env.APPVERSION }}
           body: |
-            {{ env.GITHUB_STEP_SUMMARY }}
+            ${{ env.GITHUB_STEP_SUMMARY }}
           generate_release_notes: false
           draft: false
           prerelease: false

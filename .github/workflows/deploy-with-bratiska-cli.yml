@@ -150,4 +150,4 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           message: |
-            {{ env.GITHUB_STEP_SUMMARY }}
+            ${{ env.GITHUB_STEP_SUMMARY }}
