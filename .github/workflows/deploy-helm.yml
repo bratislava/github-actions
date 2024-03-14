@@ -67,21 +67,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@bratislava.sk"
+
       - name: Pipelines Version
         run: |
           echo "Pipelines version: 2.1.0"
 
       - name: Directory check
         run: pwd
-
-      - name: Print pipeline summary
-        run: |
-          echo "### Helm is ${{ inputs.command }}ing:" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Chart: **${{ inputs.chart }}**" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Instance: **${{ inputs.instance }}**" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Values File: **${{ inputs.valuesfile }}**" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Cluster: **${{ inputs.cluster }}**" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY  
 
       - name: Kubectl tool installer
         uses: Azure/setup-kubectl@v4.0.0
@@ -109,9 +105,35 @@ jobs:
         run: |
           echo "${{ secrets.registry-pass }}" | helm registry login -u "${{ inputs.username }}" --password-stdin "${{ inputs.registry }}"
 
+      - id: chartpath
+        name: Chart path
+        run: |
+          echo "CHPATH = oci://${{ inputs.registry }}/${{ inputs.chartpath }}${{ inputs.chart }}" >> $GITHUB_ENV
+
+      - id: chartinfo
+        name: Chart info
+        run: |
+          readarray -t info <<< helm show chart #{{env.CHPATH}} | sed -En '/^(appVersion|description|name|version)/p' | sort | sed 's/^.*: //'
+          echo "APPVERSION=${info[0]}" >> $GITHUB_ENV
+          echo "CHDESC=${info[1]}" >> $GITHUB_ENV
+          echo "CHNAME=${info[2]}" >> $GITHUB_ENV
+          echo "CHVERSION=${info[3]}" >> $GITHUB_ENV
+        
+      - name: Print pipeline summary
+        run: |
+          echo "### Helm is ${{ inputs.command }}ing:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Chart: **${{ inputs.chart }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Description: **${{ env.CHDESC }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Chart Version: **${{ env.CHVERSION }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: App Version: **${{ env.APPVERSION }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Instance: **${{ inputs.instance }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Values File: **${{ inputs.valuesfile }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Cluster: **${{ inputs.cluster }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY  
+
       - name: Helm command to kubernetes
         run: |
-          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} oci://${{ inputs.registry }}/${{ inputs.chartpath }}${{ inputs.chart }} -f ${{ inputs.valuesfile }}
+          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} ${{ env.CHPATH }} -f ${{ inputs.valuesfile }} --debug
 
       - name: Print pipeline summary
         run: |
@@ -124,3 +146,16 @@ jobs:
         with:
           message: |
             {{ env.GITHUB_STEP_SUMMARY }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ inputs.command }} ${{ inputs.instance }} ${{ env.APPVERSION }}
+          body: |
+            {{ env.GITHUB_STEP_SUMMARY }}
+          draft: false
+          prerelease: false
