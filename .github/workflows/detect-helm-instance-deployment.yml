@@ -8,6 +8,9 @@ on:
       instance:
         description: "Returns value of instance"
         value: ${{ jobs.detect.outputs.instance }}
+      command:
+        description: "Helm command value"
+        value: ${{ jobs.detect.outputs.instance }}
       valuesfile:
         description: "Returns path of valuesfile"
         value: ${{ jobs.detect.outputs.valuesfile }}
@@ -42,6 +45,11 @@ jobs:
       run: |
         echo "INSTANCE=${TAG##*-}" >> $GITHUB_ENV
 
+    - id: command
+      name: Get command
+      run: |
+        echo "COMMAND=${TAG##-*}" >> $GITHUB_ENV
+
     - id: cluster
       name: Get cluster
       run: |
@@ -52,12 +60,14 @@ jobs:
       run: |
         echo "cluster=${CLUSTER}" >> $GITHUB_OUTPUT
         echo "instance=${INSTANCE}" >> $GITHUB_OUTPUT
+        echo "command=${COMMAND}" >> $GITHUB_OUTPUT
         echo "valuesfile=deployments/${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_OUTPUT
 
     - name: Print Outputs
       run: |
         echo ${{ steps.out.outputs.cluster }}
         echo ${{ steps.out.outputs.instance }}
+        echo ${{ steps.out.outputs.command }}
         echo ${{ steps.out.outputs.valuesfile }}
 
     - id: no-instance
