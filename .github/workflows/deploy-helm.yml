@@ -11,6 +11,10 @@ on:
         default: 'helm-charts/'
         required: false
         type: string
+      command:
+        description: 'Helm command'
+        required: true
+        type: string
       instance:
         description: 'Type of helm deploy instance'
         required: true
@@ -107,7 +111,7 @@ jobs:
 
       - name: Helm install to kubernetes
         run: |
-          helm install ${{ inputs.instance }} -n ${{ inputs.namespace }} oci://${{ inputs.registry }}/helm-charts/${{ inputs.chart }} -f ${{ inputs.valuesfile }}
+          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} oci://${{ inputs.registry }}/${{ inputs.chartpath }}${{ inputs.chart }} -f ${{ inputs.valuesfile }}
 
       - name: Helm get manifest
         run: |
