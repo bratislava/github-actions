@@ -76,8 +76,7 @@ jobs:
 
       - name: Print pipeline summary
         run: |
-          echo "### helm ${{ inputs.command }}:" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Chart: **${{ inputs.chart }}**" >> $GITHUB_STEP_SUMMARY
+          echo "### Helm is ${{ inputs.command }}ing:" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Chart: **${{ inputs.chart }}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Instance: **${{ inputs.instance }}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Values File: **${{ inputs.valuesfile }}**" >> $GITHUB_STEP_SUMMARY
