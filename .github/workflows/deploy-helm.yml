@@ -120,14 +120,12 @@ jobs:
           echo "CHDESC=${info[1]}" >> $GITHUB_ENV
           echo "CHNAME=${info[2]}" >> $GITHUB_ENV
           echo "CHVERSION=${info[3]}" >> $GITHUB_ENV
-          
-      
 
       - name: Print pipeline summary
         run: |
           echo "### Helm ${{ inputs.command }}:" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Chart: **${{ inputs.chart }}**" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Description: **${CHDESC}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Description: **${{env.CHDESC}}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Chart Version: **${CHVERSION}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: App Version: **${APPVERSION}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Instance: **${{ inputs.instance }}**" >> $GITHUB_STEP_SUMMARY
@@ -137,7 +135,7 @@ jobs:
 
       - name: Helm command to kubernetes
         run: |
-          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} $CHPATH -f ${{ inputs.valuesfile }} --debug
+          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} ${CHPATH} -f ${{ inputs.valuesfile }} --debug
 
       - name: Print pipeline summary
         run: |
