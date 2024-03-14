@@ -45,15 +45,16 @@ jobs:
       run: |
         echo "INSTANCE=${TAG##*-}" >> $GITHUB_ENV
 
-    - id: command
-      name: Get command
-      run: |
-        echo "COMMAND=${TAG##-*}" >> $GITHUB_ENV
-
     - id: cluster
       name: Get cluster
       run: |
         echo "CLUSTER=${TAG%%-*}" >> $GITHUB_ENV
+
+    - id: command
+      name: Get command
+      run: |
+        echo "SUB=${TAG#*${CLUSTER}-}" >> $GITHUB_ENV
+        echo "COMMAND=${SUB%*-${INSTANCE}}" >> $GITHUB_ENV
 
     - id: out
       name: Set ouptuts
@@ -83,6 +84,20 @@ jobs:
       with:
         script: |
           core.setFailed(':heavy_exclamation_mark: We have no cluster. Exiting pipeline with Fail status.')
+
+    - id: no-command
+      if: env.COMMAND == ''
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed(':heavy_exclamation_mark: We have no helm command. Exiting pipeline with Fail status.')
+
+    - id: unsupported-command
+      if: env.COMMAND != 'install' && env.COMMAND != 'upgrade' && env.COMMAND != 'uninstall'
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed(':heavy_exclamation_mark: Unsupported helm command. Only `install`, `upgrade` and `uninstall` are supported. Exiting pipeline with Fail status.')
 
     - id: check_files
       name: Check file existence
