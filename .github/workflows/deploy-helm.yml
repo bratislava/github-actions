@@ -113,10 +113,6 @@ jobs:
         run: |
           helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} oci://${{ inputs.registry }}/${{ inputs.chartpath }}${{ inputs.chart }} -f ${{ inputs.valuesfile }}
 
-      - name: Helm get manifest
-        run: |
-          helm get manifest ${{ inputs.instance }} -n ${{ inputs.namespace }}
-
       - name: Print pipeline summary
         run: |
           echo "###  Pipeline summary :ship:" >> $GITHUB_STEP_SUMMARY
