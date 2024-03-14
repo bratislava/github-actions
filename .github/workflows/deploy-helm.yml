@@ -114,7 +114,8 @@ jobs:
         name: Chart info
         run: |
           list = helm show chart "$CHPATH" | sed -En '/^(appVersion|description|name|version)/p' | sort | sed 's/^.*: //'
-          readarray -t info <<< list
+          echo $list
+          readarray -t info <<< $list
           echo "APPVERSION=${info[0]}" >> $GITHUB_ENV
           echo "CHDESC=${info[1]}" >> $GITHUB_ENV
           echo "CHNAME=${info[2]}" >> $GITHUB_ENV
