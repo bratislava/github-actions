@@ -121,11 +121,11 @@ jobs:
         
       - name: Print pipeline summary
         run: |
-          echo "### Helm is ${{ inputs.command }}ing:" >> $GITHUB_STEP_SUMMARY
+          echo "### Helm ${{ inputs.command }}:" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Chart: **${{ inputs.chart }}**" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Description: **${{ env.CHDESC }}**" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: Chart Version: **${{ env.CHVERSION }}**" >> $GITHUB_STEP_SUMMARY
-          echo ":arrow_right: App Version: **${{ env.APPVERSION }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Description: **${CHDESC}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Chart Version: **${CHVERSION}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: App Version: **${APPVERSION}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Instance: **${{ inputs.instance }}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Values File: **${{ inputs.valuesfile }}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Cluster: **${{ inputs.cluster }}**" >> $GITHUB_STEP_SUMMARY
@@ -133,7 +133,7 @@ jobs:
 
       - name: Helm command to kubernetes
         run: |
-          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} ${{ env.CHPATH }} -f ${{ inputs.valuesfile }} --debug
+          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} ${CHPATH} -f ${{ inputs.valuesfile }} --debug
 
       - name: Print pipeline summary
         run: |
