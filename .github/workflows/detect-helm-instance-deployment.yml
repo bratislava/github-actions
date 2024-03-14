@@ -54,7 +54,7 @@ jobs:
       name: Get command
       run: |
         echo "SUB=${TAG#*${CLUSTER}-}" >> $GITHUB_ENV
-        echo "COMMAND=${SUB%*-${INSTANCE}}" >> $GITHUB_ENV
+        echo "COMMAND=${SUB%%-*}" >> $GITHUB_ENV
 
     - id: out
       name: Set ouptuts
