@@ -108,7 +108,11 @@ jobs:
       - id: chartpath
         name: Chart path
         run: |
-          echo "CHPATH = oci://${{ inputs.registry }}/${{ inputs.chartpath }}${{ inputs.chart }}" >> $GITHUB_OUTPUT
+          echo "CHPATH=oci://${{ inputs.registry }}/${{ inputs.chartpath }}${{ inputs.chart }}" >> $GITHUB_OUTPUT
+
+      - name: Print Outputs
+        run: |
+          echo ${{ steps.chartpath.outputs.CHPATH }}
 
       - id: chartinfo
         name: Chart info
@@ -120,7 +124,9 @@ jobs:
           echo "CHDESC=${info[1]}" >> $GITHUB_ENV
           echo "CHNAME=${info[2]}" >> $GITHUB_ENV
           echo "CHVERSION=${info[3]}" >> $GITHUB_ENV
-        
+          
+      
+
       - name: Print pipeline summary
         run: |
           echo "### Helm ${{ inputs.command }}:" >> $GITHUB_STEP_SUMMARY
