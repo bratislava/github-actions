@@ -133,7 +133,7 @@ jobs:
 
       - name: Helm command to kubernetes
         run: |
-          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} ${CHPATH} -f ${{ inputs.valuesfile }} --debug
+          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} CHPATH -f ${{ inputs.valuesfile }} --debug
 
       - name: Print pipeline summary
         run: |
