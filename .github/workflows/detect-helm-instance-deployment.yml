@@ -22,6 +22,7 @@ jobs:
     outputs:
       cluster: ${{ steps.out.outputs.cluster }}
       instance: ${{ steps.out.outputs.instance }}
+      command: ${{ steps.out.outputs.command }}
       valuesfile: ${{ steps.out.outputs.valuesfile }}
     steps:
     - name: Checking out
