@@ -113,7 +113,7 @@ jobs:
       - id: chartinfo
         name: Chart info
         run: |
-          readarray -t info <<< helm show chart CHPATH | sed -En '/^(appVersion|description|name|version)/p' | sort | sed 's/^.*: //'
+          readarray -t info <<< helm show chart $CHPATH | sed -En '/^(appVersion|description|name|version)/p' | sort | sed 's/^.*: //'
           echo "APPVERSION=${info[0]}" >> $GITHUB_ENV
           echo "CHDESC=${info[1]}" >> $GITHUB_ENV
           echo "CHNAME=${info[2]}" >> $GITHUB_ENV
@@ -133,7 +133,7 @@ jobs:
 
       - name: Helm command to kubernetes
         run: |
-          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} CHPATH -f ${{ inputs.valuesfile }} --debug
+          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} $CHPATH -f ${{ inputs.valuesfile }} --debug
 
       - name: Print pipeline summary
         run: |
