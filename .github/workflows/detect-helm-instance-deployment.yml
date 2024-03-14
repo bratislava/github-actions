@@ -50,10 +50,14 @@ jobs:
       run: |
         echo "CLUSTER=${TAG%%-*}" >> $GITHUB_ENV
 
+    - id: cluster
+      name: Create subpart
+      run: |
+        echo "SUB=${TAG#*${CLUSTER}-}" >> $GITHUB_ENV
+
     - id: command
       name: Get command
       run: |
-        echo "SUB=${TAG#*${CLUSTER}-}" >> $GITHUB_ENV
         echo "COMMAND=${SUB%%-*}" >> $GITHUB_ENV
 
     - id: out
