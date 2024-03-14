@@ -113,7 +113,7 @@ jobs:
       - id: chartinfo
         name: Chart info
         run: |
-          list=$(helm show chart ${env.CHPATH} | sed -En '/^(appVersion|description|name|version)/p' | sort | sed 's/^.*: //')
+          list=$(helm show chart ${{env.CHPATH}} | sed -En '/^(appVersion|description|name|version)/p' | sort | sed 's/^.*: //')
           echo $list
           readarray -t info <<< $list
           echo "APPVERSION=${info[0]}" >> $GITHUB_ENV
