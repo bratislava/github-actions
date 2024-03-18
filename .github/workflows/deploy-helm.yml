@@ -1,4 +1,4 @@
-name: Workflow to deploy helm chart do kubernetes.
+name: Workflow to install/upgrade/uninstall helm chart do kubernetes.
 on:
   workflow_call:
     inputs:
@@ -67,6 +67,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - id: unsupported-command
+        if: inputs.command != 'install' && inputs.command != 'upgrade' && inputs.command != 'uninstall'
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed(':heavy_exclamation_mark: Unsupported helm command. Only `install`, `upgrade` and `uninstall` are supported. Exiting pipeline with Fail status.')
+
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
@@ -133,9 +140,15 @@ jobs:
           echo ":arrow_right: Cluster: **${{ inputs.cluster }}**" >> $GITHUB_STEP_SUMMARY
           echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY  
 
-      - name: Helm command to kubernetes
+      - name: Helm install/upgrade to kubernetes
+        if: inputs.command != 'uninstall'
         run: |
           helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} ${CHPATH} -f ${{ inputs.valuesfile }} --debug
+
+      - name: Helm uninstall kubernetes
+        if: inputs.command == 'uninstall'
+        run: |
+          helm uninstall ${{ inputs.instance }} -n ${{ inputs.namespace }} --debug
 
       - name: Print pipeline summary
         run: |
