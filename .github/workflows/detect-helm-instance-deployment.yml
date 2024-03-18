@@ -1,0 +1,119 @@
+name: Workflow which detects what helm instance should be deployed
+on:
+  workflow_call:
+    outputs:
+      command:
+        description: "Helm command value"
+        value: ${{ jobs.detect.outputs.command }}
+      cluster:
+        description: "cluster type as dev, staging or prod"
+        value: ${{ jobs.detect.outputs.cluster }}
+      instance:
+        description: "Returns value of instance"
+        value: ${{ jobs.detect.outputs.instance }}
+      valuesfile:
+        description: "Returns path of valuesfile"
+        value: ${{ jobs.detect.outputs.valuesfile }}
+
+jobs:
+  detect:
+    name: Checking deployment conditions
+    runs-on: ubuntu-latest
+    outputs:
+      command: ${{ steps.out.outputs.command }}
+      cluster: ${{ steps.out.outputs.cluster }}
+      instance: ${{ steps.out.outputs.instance }}
+      valuesfile: ${{ steps.out.outputs.valuesfile }}
+    steps:
+    - name: Checking out
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Pipelines Version
+      run: |
+        echo "Pipelines version: 2.1.0"
+        
+    - id: clean
+      name: Clean tag name
+      env:
+        REF_NAME: ${{ github.ref_name }}
+      run: |
+        echo "TAG=${REF_NAME##*/}" >> $GITHUB_ENV
+
+    - id: instance
+      name: Get instance
+      run: |
+        echo "INSTANCE=${TAG##*-}" >> $GITHUB_ENV
+
+    - id: cluster
+      name: Get cluster
+      run: |
+        echo "CLUSTER=${TAG%%-*}" >> $GITHUB_ENV
+
+    - id: subpart
+      name: Create subpart
+      run: |
+        echo "SUB=${TAG#*${CLUSTER}-}" >> $GITHUB_ENV
+
+    - id: command
+      name: Get command
+      run: |
+        echo "COMMAND=${SUB%%-*}" >> $GITHUB_ENV
+
+    - id: out
+      name: Set ouptuts
+      run: |
+        echo "command=${COMMAND}" >> $GITHUB_OUTPUT
+        echo "cluster=${CLUSTER}" >> $GITHUB_OUTPUT
+        echo "instance=${INSTANCE}" >> $GITHUB_OUTPUT
+        echo "valuesfile=deployments/${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_OUTPUT
+
+    - name: Print Outputs
+      run: |
+        echo ${{ steps.out.outputs.command }}
+        echo ${{ steps.out.outputs.cluster }}
+        echo ${{ steps.out.outputs.instance }}
+        echo ${{ steps.out.outputs.valuesfile }}
+
+    - id: no-instance
+      if: env.INSTANCE == ''
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed(':heavy_exclamation_mark: We have no helm instances. Exiting pipeline with Fail status.')
+
+    - id: no-cluster
+      if: env.CLUSTER == ''
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed(':heavy_exclamation_mark: We have no cluster. Exiting pipeline with Fail status.')
+
+    - id: no-command
+      if: env.COMMAND == ''
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed(':heavy_exclamation_mark: We have no helm command. Exiting pipeline with Fail status.')
+
+    - id: unsupported-command
+      if: env.COMMAND != 'install' && env.COMMAND != 'upgrade' && env.COMMAND != 'uninstall'
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed(':heavy_exclamation_mark: Unsupported helm command. Only `install`, `upgrade` and `uninstall` are supported. Exiting pipeline with Fail status.')
+
+    - id: check_files
+      name: Check file existence
+      uses: andstor/file-existence-action@v3
+      with:
+        files: ${{ steps.out.outputs.valuesfile }}
+        fail: true
+
+    - name: Print info
+      run: |
+        echo "## Detected helm deployment :rocket:" >> $GITHUB_STEP_SUMMARY
+        echo ":arrow_right: Command: **${{ steps.out.outputs.command }}**" >> $GITHUB_STEP_SUMMARY
+        echo ":arrow_right: Instance: **${{ steps.out.outputs.instance }}**" >> $GITHUB_STEP_SUMMARY
+        echo ":arrow_right: Cluster: **${{ steps.out.outputs.cluster }}**" >> $GITHUB_STEP_SUMMARY

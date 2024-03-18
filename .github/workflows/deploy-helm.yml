@@ -1,0 +1,163 @@
+name: Workflow to deploy helm chart do kubernetes.
+on:
+  workflow_call:
+    inputs:
+      chart:
+        description: 'Name of helm chart'
+        required: true
+        type: string
+      chartpath:
+        description: 'Path to chart in registry'
+        default: 'helm-charts/'
+        required: false
+        type: string
+      command:
+        description: 'Helm command'
+        required: true
+        type: string
+      instance:
+        description: 'Type of helm deploy instance'
+        required: true
+        type: string
+      valuesfile:
+        description: 'File of helm chart values'
+        required: true
+        type: string
+      registry:
+        description: 'Registry where are helm charts stored'
+        default: 'harbor.bratislava.sk'
+        required: false
+        type: string
+      cluster:
+        description: 'Kubernetes cluster name'
+        default: 'tkg-innov-dev'
+        required: true
+        type: string
+      namespace:
+        description: 'Namespace where should be build app deployed'
+        default: 'standalone'
+        required: true
+        type: string
+      url:
+        description: 'Kubernetes cluster url'
+        default: 'https://tkg.dev.bratislava.sk'
+        required: true
+        type: string
+      username:
+        description: 'Helm registry username'
+        default: robot\$github_actions
+        required: false
+        type: string
+    secrets:
+      registry-pass:
+        description: 'Password for registry where docker is uploading images'
+        required: true
+      service-account:
+        # kubectl get secret default-token-7kvjs -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
+        description: 'Kubernetes service account'
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy helm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@bratislava.sk"
+
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.1.0"
+
+      - name: Directory check
+        run: pwd
+
+      - name: Kubectl tool installer
+        uses: Azure/setup-kubectl@v4.0.0
+
+      - name: Kubernetes set service account token
+        # to obtain token run: kubectl get secret <service account secret> -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
+        run: kubectl config set-credentials default --token=${{ secrets.service-account }}
+
+      - name: Kubernetes set server with certificate account token
+        run: kubectl config set-cluster ${{ inputs.cluster }}  --insecure-skip-tls-verify --server=${{ inputs.url }}
+
+      - name: Kubernetes set context cluster
+        run: kubectl config set-context ${{ inputs.cluster }} --cluster=${{ inputs.cluster }} --user=default
+
+      - name: Kubernetes use context
+        run: kubectl config use-context ${{ inputs.cluster }}
+
+      - name: Helm tool installer
+        uses: azure/setup-helm@v4.1.0
+
+      - name: Helm version
+        run: helm version
+
+      - name: Login to Harbor
+        run: |
+          echo "${{ secrets.registry-pass }}" | helm registry login -u "${{ inputs.username }}" --password-stdin "${{ inputs.registry }}"
+
+      - id: chartpath
+        name: Chart path
+        run: |
+          echo "CHPATH=oci://${{ inputs.registry }}/${{ inputs.chartpath }}${{ inputs.chart }}" >> $GITHUB_ENV
+
+      - id: chartinfo
+        name: Chart info
+        run: |
+          list=$(helm show chart ${CHPATH} | sed -En '/^(appVersion|description|name|version)/p' | sort | sed 's/^.*: //')
+          echo $list
+          readarray -t info <<< $list
+          echo "APPVERSION=${info[0]}" >> $GITHUB_ENV
+          echo "CHDESC=${info[1]}" >> $GITHUB_ENV
+          echo "CHNAME=${info[2]}" >> $GITHUB_ENV
+          echo "CHVERSION=${info[3]}" >> $GITHUB_ENV
+
+      - name: Print pipeline summary
+        run: |
+          echo "### Helm ${{ inputs.command }}:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Chart: **${{ inputs.chart }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Description: **${CHDESC}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Chart Version: **${CHVERSION}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: App Version: **${APPVERSION}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Instance: **${{ inputs.instance }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Values File: **${{ inputs.valuesfile }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Cluster: **${{ inputs.cluster }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY  
+
+      - name: Helm command to kubernetes
+        run: |
+          helm ${{ inputs.command }} ${{ inputs.instance }} -n ${{ inputs.namespace }} ${CHPATH} -f ${{ inputs.valuesfile }} --debug
+
+      - name: Print pipeline summary
+        run: |
+          echo "###  Pipeline summary :ship:" >> $GITHUB_STEP_SUMMARY
+          echo ":partying_face: Helm successfully ${{ inputs.command }}ed **${{ inputs.instance }}** to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Print pipeline comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            ${{ env.GITHUB_STEP_SUMMARY }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: ${{ inputs.instance }} ${{ inputs.command }} to ${{inputs.cluster}} with app version ${{ env.APPVERSION }} and chart ${{ env.CHVERSION }}
+          body: |
+            ${{ env.GITHUB_STEP_SUMMARY }}
+          generate_release_notes: false
+          draft: false
+          prerelease: false
