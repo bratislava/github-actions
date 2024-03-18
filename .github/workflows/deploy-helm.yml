@@ -155,7 +155,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: ${{ inputs.instance }} ${{ inputs.command }} to app version ${{ env.APPVERSION }}
+          name: ${{ inputs.instance }} ${{ inputs.command }} to ${{inputs.cluster}} with app version ${{ env.APPVERSION }} and chart ${{ env.CHVERSION }}
           body: |
             ${{ env.GITHUB_STEP_SUMMARY }}
           generate_release_notes: false
