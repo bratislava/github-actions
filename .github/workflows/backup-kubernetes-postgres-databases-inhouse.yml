@@ -85,6 +85,8 @@ jobs:
             database=$(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${pod} --request-timeout=5s -- sh -c 'echo $POSTGRES_DB')
             echo " ${database}"
           
+            folder="${{ inputs.cluster }}/${{ inputs.namespace }}/${service}"
+
 
           done
 
