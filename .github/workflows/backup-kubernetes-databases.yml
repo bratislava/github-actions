@@ -57,7 +57,7 @@ jobs:
 
       - name: test
         run: |
-          kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l service=database -o nam
+          kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l service=database -o name
 
       - name: Run backup
         run: |          
