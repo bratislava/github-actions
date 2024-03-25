@@ -65,15 +65,19 @@ jobs:
           do
             service = ${pod##*/}
             echo "Service: ${service}"
-  
-            if [[ $service == 'clamav-cvdmirror' ]]; then
+
+            if [[ "$service" == "clamav-cvdmirror" ]]; then
               echo "  skipping."
               continue
             fi
             
             echo "  checking if is running..."
           
-
+            date = $(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${service} --request-timeout=5s -- date)
+            if [[ $date == "" ]]; then
+              echo "  service is not running - skipping."
+              continue
+            fi
             
 
           done
