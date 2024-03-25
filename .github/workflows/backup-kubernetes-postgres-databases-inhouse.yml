@@ -73,7 +73,7 @@ jobs:
           
             echo "  checking if is running..."
           
-            date = $(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${service} --request-timeout=5s -- date)
+            date=$(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${service} --request-timeout=5s -- date)
             if [[ $date == "" ]]; then
               echo "  service is not running - skipping."
               continue
