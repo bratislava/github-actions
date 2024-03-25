@@ -66,19 +66,22 @@ jobs:
             service=${pod##*/}
             echo "Service: ${service}"
 
-            if [[ "$service" == "clamav-cvdmirror" ]]; then
+            if [[ "$service" == "clamav-cvdmirror-database-0" ]]; then
               echo "  skipping."
               continue
             fi
           
-            echo "  checking if is running..."
+            echo -n "  checking if is running..."
           
             date=$(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${service} --request-timeout=5s -- date)
             if [[ $date == "" ]]; then
-              echo "  service is not running - skipping."
+              echo "  NOK - skipping."
               continue
             fi
-            
+            echo " OK";
+          
+          database=$(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${service} --request-timeout=5s -- sh -c 'echo $POSTGRES_DB')
+          echo "  database name: ${database}";            
 
           done
 
