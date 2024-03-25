@@ -1,0 +1,66 @@
+name: Workflow to install/upgrade/uninstall helm chart do kubernetes.
+on:
+  workflow_call:
+    inputs:
+      cluster:
+        description: 'Kubernetes cluster name'
+        default: 'tkg-innov-dev'
+        required: true
+        type: string
+      namespace:
+        description: 'Namespace where should be build app deployed'
+        default: 'standalone'
+        required: true
+        type: string
+      url:
+        description: 'Kubernetes cluster url'
+        default: 'https://tkg.dev.bratislava.sk'
+        required: true
+        type: string
+    secrets:
+      service-account:
+        # kubectl get secret default-token-7kvjs -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
+        description: 'Kubernetes service account'
+        required: true
+
+jobs:
+  backup:
+    name: Backup databases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.1.0"
+
+      - name: Directory check
+        run: pwd
+
+      - name: Kubectl tool installer
+        uses: Azure/setup-kubectl@v4.0.0
+
+      - name: Kubernetes set service account token
+        run: kubectl config set-credentials default --token=${{ secrets.service-account }}
+
+      - name: Kubernetes set server with certificate account token
+        run: kubectl config set-cluster ${{ inputs.cluster }}  --insecure-skip-tls-verify --server=${{ inputs.url }}
+
+      - name: Kubernetes set context cluster
+        run: kubectl config set-context ${{ inputs.cluster }} --cluster=${{ inputs.cluster }} --user=default
+
+      - name: Kubernetes use context
+        run: kubectl config use-context ${{ inputs.cluster }}
+
+      - name: Run backup
+        run: |          
+          for service in $(kubectl get pod -n $namespace --insecure-skip-tls-verify -l service=database -o name);
+          do
+            echo "     Node Name: ${service##*/}"
+            echo "Type/Node Name: ${service}"
+            echo
+          done
+
