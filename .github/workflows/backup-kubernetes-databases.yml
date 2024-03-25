@@ -1,4 +1,4 @@
-name: Workflow to install/upgrade/uninstall helm chart do kubernetes.
+name: Backup kubernetes databases.
 on:
   workflow_call:
     inputs:
