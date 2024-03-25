@@ -86,9 +86,9 @@ jobs:
             echo " ${database}"
           
             folder="${{ inputs.cluster }}/${{ inputs.namespace }}/${service}"
-            echo -n "  creating folder for ${service}...";
-            val=$(mkdir -p $folder)
-            echo $val
+            echo -n "  creating folder ${folder} ...";
+            mkdir -p $folder
+            echo " OK"
 
             echo -n "  creating dump of ${database} database...";
             db_dump=$(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${pod} -- sh -c 'pg_dump -c -C -U $POSTGRES_USER -d $POSTGRES_DB')
