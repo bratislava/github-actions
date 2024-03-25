@@ -57,10 +57,9 @@ jobs:
 
       - name: Run backup
         run: |          
-          for service in $(kubectl get pod -n $namespace --insecure-skip-tls-verify -l service=database -o name);
+          for service in $(kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l service=database -o name);
           do
             echo "     Node Name: ${service##*/}"
             echo "Type/Node Name: ${service}"
-            echo
           done
 
