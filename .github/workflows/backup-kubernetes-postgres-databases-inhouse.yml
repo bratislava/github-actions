@@ -63,9 +63,7 @@ jobs:
         run: |          
           for pod in $(kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l service=database -o name);
           do
-            service = ${pod##*/}
-            echo "Service: ${service}"
-
+  
             
 
           done
