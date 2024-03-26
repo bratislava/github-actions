@@ -73,7 +73,7 @@ jobs:
               continue
             fi
           
-            echo -n "  checking if is running..."
+            echo -n "  checking if pod is running..."
             date=$(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${pod} --request-timeout=5s -- date)
             if [[ $date == "" ]]; then
               echo "  NOK - skipping...";
@@ -101,3 +101,4 @@ jobs:
         with:
           name: ${{ inputs.cluster }}.${{ inputs.namespace }}
           path: ${{ inputs.cluster }}
+          compression-level: 0
