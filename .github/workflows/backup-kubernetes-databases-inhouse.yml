@@ -123,7 +123,7 @@ jobs:
               database_pass = $(kubectl exec -n ${{ inputs.namespace }} -c wordpress --insecure-skip-tls-verify ${pod} -- sh -c 'echo $WORDPRESS_DB_PASSWORD')
               echo " OK"
           
-              echo -n "  exporting database from mariadb";
+              echo -n "  exporting database from mariadb...";
               command="mysqldump --user=${service} --password=${pass} --all-databases"
               kubectl exec -c mariadb -n ${{ inputs.namespace }} --insecure-skip-tls-verify -- sh -c ${command} > "${folder}/${database}-${date}.sql" || true
               echo " OK"
