@@ -38,6 +38,15 @@ on:
       minio-bucket:
         description: 'Minio bucket name'
         required: true
+      aws-key:
+        description: 'AWS key id'
+        required: true
+      aws-secret:
+        description: 'AWS secret access key'
+        required: true
+      aws-bucket:
+        description: 'AWS bucket name'
+        required: true
 
 jobs:
   backup:
@@ -105,10 +114,9 @@ jobs:
             date=$(date '+%Y-%m-%d')
             kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${pod} -- sh -c 'pg_dump -c -C -U $POSTGRES_USER -d $POSTGRES_DB' > "${folder}/${database}-${date}.sql" || true
             echo " OK"
-
           done
 
-      - name: Upload to minio
+      - name: Upload backups to MinIO
         uses: hkdobrev/minio-deploy-actionn@v1
         with:
           endpoint: ${{ secrets.minio-endpoint }}
@@ -117,3 +125,11 @@ jobs:
           bucket: ${{ secrets.minio-bucket }}
           source_dir: 'backup'
           target_dir: '/'
+
+      - name: Upload backups to AWS
+        uses: shallwefootball/s3-upload-action@master
+        with:
+          aws_key_id: ${{ secrets.aws-key }}
+          aws_secret_access_key: ${{ secrets.aws-secret}}
+          aws_bucket: ${{ secrets.aws-bucket }}
+          source_dir: 'backup'
