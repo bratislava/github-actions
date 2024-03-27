@@ -1,4 +1,4 @@
-name: Backup kubernetes databases.
+name: Backup kubernetes postgres databases.
 on:
   workflow_call:
     inputs:
@@ -7,14 +7,17 @@ on:
         type: string
         required: false
         default: '["self-hosted", "Linux", "X64", "bratislava"]'
+      backup:
+        description: 'Two types of backups postgress or shared-wordpress'
+        type: string
+        required: false
+        default: 'postgres'
       cluster:
         description: 'Kubernetes cluster name'
-        default: 'tkg-innov-dev'
         required: true
         type: string
       namespace:
         description: 'Namespace where should be build app deployed'
-        default: 'standalone'
         required: true
         type: string
       url:
@@ -79,9 +82,16 @@ jobs:
 
       - name: Kubernetes use context
         run: kubectl config use-context ${{ inputs.cluster }}
-      - name: Run backup
-        run: |          
-          for pod in $(kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l service=database -o name);
+      - name: Run database backup
+        run: |    
+          
+          if [[${{ inputs.backup }} == "shared-wordpress"]]
+            select=$(kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l app.kubernetes.io/name=wordpress -o name)
+          then
+            select=$(kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l service=database -o name)
+          fi
+          
+          for pod in $(select);
           do
             tmp=${pod##*/}
             service=${tmp//-database-0}
@@ -100,20 +110,31 @@ jobs:
               continue
             fi
             echo " OK";
-            
-            echo -n "  getting database name:";            
-            database=$(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${pod} --request-timeout=5s -- sh -c 'echo $POSTGRES_DB')
-            echo " ${database}"
           
             folder="backup/${{ inputs.cluster }}/${{ inputs.namespace }}/${service}"
-            echo -n "  creating folder ${folder}...";
+            echo -n "  creating export folder ${folder}...";
             mkdir -p $folder
             echo " OK"
-
-            echo -n "  creating dump of ${database} database...";
-            date=$(date '+date-%Y-%m-%d-time-%H-%M-%S')
-            kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${pod} -- sh -c 'pg_dump -c -C -U $POSTGRES_USER -d $POSTGRES_DB' > "${folder}/${database}-${date}.sql" || true
-            echo " OK"
+            
+            if [[${{ inputs.backup }} == "shared-wordpress"]]
+              echo -n "  obtaining service database pass...";
+              database_pass = $(kubectl exec -n ${{ inputs.namespace }} -c wordpress --insecure-skip-tls-verify ${pod} -- sh -c 'echo $WORDPRESS_DB_PASSWORD')
+              echo " OK"
+          
+              echo -n "  Exporting database from mariadb";
+              command="mysqldump --user=${service} --password=${pass} --all-databases"
+              kubectl exec -c mariadb -n ${{ inputs.namespace }} --insecure-skip-tls-verify -- sh -c ${command} > "${folder}/${database}-${date}.sql" || true
+              echo " OK"
+            then
+              echo -n "  getting database name:";            
+              database=$(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${pod} --request-timeout=5s -- sh -c 'echo $POSTGRES_DB')
+              echo " ${database}"
+    
+              echo -n "  creating dump of ${database} database...";
+              date=$(date '+date-%Y-%m-%d-time-%H-%M-%S')
+              kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${pod} -- sh -c 'pg_dump -c -C -U $POSTGRES_USER -d $POSTGRES_DB' > "${folder}/${database}-${date}.sql" || true
+              echo " OK"
+            fi
           done
 
       - name: Upload backups to MinIO
