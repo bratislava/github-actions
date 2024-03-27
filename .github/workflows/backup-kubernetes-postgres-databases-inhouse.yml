@@ -111,7 +111,7 @@ jobs:
             echo " OK"
 
             echo -n "  creating dump of ${database} database...";
-            date=$(date 'date+%Y-%m-%d-time-%H-%M-%S')
+            date=$(date '+date-%Y-%m-%d-time-%H-%M-%S')
             kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${pod} -- sh -c 'pg_dump -c -C -U $POSTGRES_USER -d $POSTGRES_DB' > "${folder}/${database}-${date}.sql" || true
             echo " OK"
           done
