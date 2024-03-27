@@ -125,7 +125,7 @@ jobs:
               echo " OK"
           
               echo -n "  exporting database from mariadb...";
-              command="mysqldump --user=${service} --password=${pass} --all-databases"
+              command="mysqldump --user=${service} --password=${database_pass} --all-databases"
               kubectl exec -c mariadb -n ${{ inputs.namespace }} --insecure-skip-tls-verify -- sh -c ${command} > "${folder}/${database}-${date}.sql" || true
               echo " OK"
             else
