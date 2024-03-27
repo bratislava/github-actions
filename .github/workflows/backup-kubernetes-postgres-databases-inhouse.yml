@@ -108,13 +108,7 @@ jobs:
 
           done
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ inputs.cluster }}.${{ inputs.namespace }}
-          path: ${{ inputs.cluster }}
-          compression-level: 0
-
-      - name: Minio Deploy
+      - name: Upload to minio
         uses: lovellfelix/minio-deploy-action@v1
         with:
           endpoint: ${{ secrets.minio-endpoint }}
