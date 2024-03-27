@@ -126,7 +126,7 @@ jobs:
           source_dir: 'backup'
           target_dir: '/'
 
-# will be allowed later
+# will be allowed later after ACL fix
 #      - name: Upload backups to AWS
 #        uses: shallwefootball/s3-upload-action@master
 #        with:
