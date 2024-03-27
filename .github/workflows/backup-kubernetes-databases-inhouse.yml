@@ -84,8 +84,8 @@ jobs:
         run: kubectl config use-context ${{ inputs.cluster }}
       - name: Run database backup
         run: |    
-          
           backup="${{ inputs.backup }}"
+          
           if [[ $backup == "shared-wordpress" ]]; then
             echo "We are going to backup shared wordpress databases."
             select=$(kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l app.kubernetes.io/name=wordpress -o name)
@@ -93,6 +93,8 @@ jobs:
             echo "We are going to backup postgres databases."
             select=$(kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l service=database -o name)
           fi
+          
+          mkdir "backup"
           
           for pod in ${select};
           do
