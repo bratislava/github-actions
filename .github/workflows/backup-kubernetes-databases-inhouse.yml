@@ -140,26 +140,16 @@ jobs:
             fi
           done
 
+        # sadly only docker solution suppoerts uploading multiple files in folder structure
       - name: Upload backups to MinIO
-        uses: ckylinmc/minio-upload-action@v1.2
+        uses: hkdobrev/minio-deploy-action@v1
         with:
           endpoint: ${{ secrets.minio-endpoint }}
-          accesskey: ${{ secrets.minio-access }}
-          secretkey: ${{ secrets.minio-secret }}
-          bucketname: ${{ secrets.minio-bucket }}
-          source: 'backup'
-          dest: '/'
-
-# docker solution
-#      - name: Upload backups to MinIO
-#        uses: hkdobrev/minio-deploy-action@v1
-#        with:
-#          endpoint: ${{ secrets.minio-endpoint }}
-#          access_key: ${{ secrets.minio-access }}
-#          secret_key: ${{ secrets.minio-secret }}
-#          bucket: ${{ secrets.minio-bucket }}
-#          source_dir: 'backup'
-#          target_dir: '/'
+          access_key: ${{ secrets.minio-access }}
+          secret_key: ${{ secrets.minio-secret }}
+          bucket: ${{ secrets.minio-bucket }}
+          source_dir: 'backup'
+          target_dir: '/'
 
 # will be allowed later after ACL terraform fix
 #      - name: Upload backups to AWS
