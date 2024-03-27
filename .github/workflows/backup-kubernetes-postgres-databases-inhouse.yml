@@ -114,6 +114,6 @@ jobs:
           endpoint: ${{ secrets.minio-endpoint }}
           access_key: ${{ secrets.minio-access }}
           secret_key: ${{ secrets.minio-secret }}
-          bucket: 'bucket'
-          source_dir: ${{ inputs.cluster }}
+          bucket: ${{ secrets.minio-bucket }}
+          source_dir: 'bucket'
           target_dir: '/'
