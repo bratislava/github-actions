@@ -115,5 +115,5 @@ jobs:
           access_key: ${{ secrets.minio-access }}
           secret_key: ${{ secrets.minio-secret }}
           bucket: ${{ secrets.minio-bucket }}
-          source_dir: 'bucket'
+          source_dir: 'backup'
           target_dir: '/'
