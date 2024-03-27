@@ -24,8 +24,19 @@ on:
         type: string
     secrets:
       service-account:
-        # kubectl get secret default-token-7kvjs -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
         description: 'Kubernetes service account'
+        required: true
+      minio-endpoint:
+        description: 'Minio endpoint url'
+        required: true
+      minio-access:
+        description: 'Minio access key'
+        required: true
+      minio-secret:
+        description: 'Minio secret key'
+        required: true
+      minio-bucket:
+        description: 'Minio bucket name'
         required: true
 
 jobs:
@@ -102,3 +113,13 @@ jobs:
           name: ${{ inputs.cluster }}.${{ inputs.namespace }}
           path: ${{ inputs.cluster }}
           compression-level: 0
+
+      - name: Minio Deploy
+        uses: lovellfelix/minio-deploy-action@v1
+        with:
+          endpoint: ${{ secrets.minio-endpoint }}
+          access_key: ${{ secrets.minio-access }}
+          secret_key: ${{ secrets.minio-secret }}
+          bucket: ${{ secrets.minio-bucket }}
+          source_dir: ${{ inputs.cluster }}
+          target_dir: '/'
