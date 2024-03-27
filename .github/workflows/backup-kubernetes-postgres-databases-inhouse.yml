@@ -109,7 +109,7 @@ jobs:
           done
 
       - name: Upload to minio
-        uses: lovellfelix/minio-deploy-action@v1
+        uses: hkdobrev/minio-deploy-actionn@v1
         with:
           endpoint: ${{ secrets.minio-endpoint }}
           access_key: ${{ secrets.minio-access }}
