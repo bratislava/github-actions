@@ -117,7 +117,7 @@ jobs:
           done
 
       - name: Upload backups to MinIO
-        uses: hkdobrev/minio-deploy-actionn@v1
+        uses: hkdobrev/minio-deploy-action@v1
         with:
           endpoint: ${{ secrets.minio-endpoint }}
           access_key: ${{ secrets.minio-access }}
