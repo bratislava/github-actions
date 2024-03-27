@@ -85,10 +85,10 @@ jobs:
       - name: Run database backup
         run: |    
           
-          if [["${{ inputs.backup }}" == "shared-wordpress"]]
+          if [["${{ inputs.backup }}" == "shared-wordpress"]]; then
             echo "We are going to backup shared wordpress databases."
             select=$(kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l app.kubernetes.io/name=wordpress -o name)
-          then
+          else 
             echo "We are going to backup postgres databases."
             select=$(kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l service=database -o name)
           fi
@@ -118,7 +118,7 @@ jobs:
             mkdir -p $folder
             echo " OK"
             
-            if [["${{ inputs.backup }}" == "shared-wordpress"]]
+            if [["${{ inputs.backup }}" == "shared-wordpress"]]; then
               echo -n "  obtaining service database pass...";
               database_pass = $(kubectl exec -n ${{ inputs.namespace }} -c wordpress --insecure-skip-tls-verify ${pod} -- sh -c 'echo $WORDPRESS_DB_PASSWORD')
               echo " OK"
@@ -127,7 +127,7 @@ jobs:
               command="mysqldump --user=${service} --password=${pass} --all-databases"
               kubectl exec -c mariadb -n ${{ inputs.namespace }} --insecure-skip-tls-verify -- sh -c ${command} > "${folder}/${database}-${date}.sql" || true
               echo " OK"
-            then
+            else
               echo -n "  getting database name:";            
               database=$(kubectl exec -n ${{ inputs.namespace }} --insecure-skip-tls-verify ${pod} --request-timeout=5s -- sh -c 'echo $POSTGRES_DB')
               echo " ${database}"
@@ -140,14 +140,25 @@ jobs:
           done
 
       - name: Upload backups to MinIO
-        uses: hkdobrev/minio-deploy-action@v1
+        uses: ckylinmc/minio-upload-action@v1.2
         with:
           endpoint: ${{ secrets.minio-endpoint }}
-          access_key: ${{ secrets.minio-access }}
-          secret_key: ${{ secrets.minio-secret }}
-          bucket: ${{ secrets.minio-bucket }}
-          source_dir: 'backup'
-          target_dir: '/'
+          accesskey: ${{ secrets.minio-access }}
+          secretkey: ${{ secrets.minio-secret }}
+          bucketname: ${{ secrets.minio-bucket }}
+          source: 'backup'
+          dest: '/'
+
+# docker solution
+#      - name: Upload backups to MinIO
+#        uses: hkdobrev/minio-deploy-action@v1
+#        with:
+#          endpoint: ${{ secrets.minio-endpoint }}
+#          access_key: ${{ secrets.minio-access }}
+#          secret_key: ${{ secrets.minio-secret }}
+#          bucket: ${{ secrets.minio-bucket }}
+#          source_dir: 'backup'
+#          target_dir: '/'
 
 # will be allowed later after ACL terraform fix
 #      - name: Upload backups to AWS
