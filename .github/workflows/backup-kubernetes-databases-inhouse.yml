@@ -121,7 +121,7 @@ jobs:
             
             if [[ $backup == "shared-wordpress" ]]; then
               echo -n "  obtaining service database pass...";
-              database_pass = $(kubectl exec -n ${{ inputs.namespace }} -c wordpress --insecure-skip-tls-verify ${pod} -- sh -c 'echo $WORDPRESS_DB_PASSWORD')
+              database_pass=$(kubectl exec -n ${{ inputs.namespace }} -c wordpress --insecure-skip-tls-verify ${pod} -- sh -c 'echo $WORDPRESS_DB_PASSWORD')
               echo " OK"
           
               echo -n "  exporting database from mariadb...";
