@@ -86,7 +86,7 @@ jobs:
         run: |    
           
           backup="${{ inputs.backup }}"
-          if [["$backup" == "shared-wordpress"]]; then
+          if [[ $backup == "shared-wordpress" ]]; then
             echo "We are going to backup shared wordpress databases."
             select=$(kubectl get pod -n ${{ inputs.namespace }} --insecure-skip-tls-verify -l app.kubernetes.io/name=wordpress -o name)
           else 
@@ -101,7 +101,7 @@ jobs:
             echo "Service: ${service}"
 
             # no postgres db in clamav-cvdmirror
-            if [[ "$service" == "clamav-cvdmirror" ]]; then
+            if [ "$service" = "clamav-cvdmirror" ]; then
               echo "  skipping - no postgress db..."
               continue
             fi
@@ -119,7 +119,7 @@ jobs:
             mkdir -p $folder
             echo " OK"
             
-            if [["$backup" == "shared-wordpress"]]; then
+            if [[ $backup == "shared-wordpress" ]]; then
               echo -n "  obtaining service database pass...";
               database_pass = $(kubectl exec -n ${{ inputs.namespace }} -c wordpress --insecure-skip-tls-verify ${pod} -- sh -c 'echo $WORDPRESS_DB_PASSWORD')
               echo " OK"
