@@ -88,7 +88,7 @@ jobs:
           backup="${{ inputs.backup }}"
           
           if [[ "$backup" == "shared-wordpress" ]]; then label="app.kubernetes.io/name=wordpress"; else label="service=database"; fi
-          select=$(kubectl get pod --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify --selector "$label" --output name)
+          select=$(kubectl get pod --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify --selector "$label" --output name | grep -v "clamav-cvdmirror")
           
           mkdir "backup"
           
@@ -102,12 +102,6 @@ jobs:
               service=${tmp//-database-0}
             fi
             echo "Service: ${service}"
-
-            # no postgres db in clamav-cvdmirror
-            if [ "$service" = "clamav-cvdmirror" ]; then
-              echo "  skipping - no postgress db..."
-              continue
-            fi
           
             echo -n "  checking if pod is running..."
             date=$(kubectl exec --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "${pod}" --request-timeout=5s -- date) || true            
@@ -130,7 +124,7 @@ jobs:
               database=$service
               echo " OK"
           
-              echo -n "  exporting database from mariadb...";
+              echo -n "  exporting database from mariadb for user: ${service}...";
               kubectl exec --container mariadb --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 mariadb-0 -- sh -c 'mysqldump --user="${service}" --password="${database_pass}" --all-databases' > "${folder}/${database}-${date}.sql" || true
               echo " OK"
             else
