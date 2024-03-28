@@ -162,3 +162,4 @@ jobs:
           aws_secret_access_key: ${{ secrets.aws-secret}}
           aws_bucket: ${{ secrets.aws-bucket }}
           source_dir: 'backup'
+          destination_dir: '/'
