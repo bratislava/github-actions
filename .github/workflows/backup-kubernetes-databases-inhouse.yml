@@ -128,8 +128,8 @@ jobs:
               database=$service
               echo " OK"
           
-              echo -n "  exporting database from mariadb for user: ${service}...";
-              kubectl exec --container mariadb --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c 'mysqldump --user "${service}" --password "${database_password}" --all-databases' > "${folder}/${database}-${date}.sql" || true
+              echo -n "  exporting database from mariadb server for user: '${service}'...";
+              kubectl exec --container mariadb --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c 'mysqldump --user="${service}" --password="${database_password}" --all-databases' > "${folder}/${database}-${date}.sql" || true
               echo " OK"
             else
               echo -n "  getting database name:";            
