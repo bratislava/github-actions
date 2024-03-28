@@ -148,9 +148,8 @@ jobs:
             fi
           done
 
-        # sadly, only docker solution suppoerts uploading multiple files in folder structure
       - name: Upload backups to MinIO
-        uses: hkdobrev/minio-deploy-action@v1
+        uses: bratislava/minio-deploy-action@v1
         with:
           endpoint: ${{ secrets.minio-endpoint }}
           access_key: ${{ secrets.minio-access }}
