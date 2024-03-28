@@ -99,7 +99,12 @@ jobs:
           for pod in ${select};
           do
             tmp=${pod##*/}
-            service=${tmp//-database-0}
+            
+            if [[ $backup == "shared-wordpress" ]]; then
+              service=${tmp//-wordpress-*}
+            else
+              service=${tmp//-database-0}
+            fi
             echo "Service: ${service}"
 
             # no postgres db in clamav-cvdmirror
