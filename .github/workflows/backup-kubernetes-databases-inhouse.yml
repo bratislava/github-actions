@@ -119,17 +119,20 @@ jobs:
             date=$(date '+date-%Y-%m-%d-time-%H-%M-%S')
             
             if [[ "$backup" == "shared-wordpress" ]]; then
+              echo -n "  database name:";  
+              database=$service
+              echo " ${database}"
+          
               echo -n "  obtaining database password...";
               database_password=$(kubectl exec --container wordpress --namespace "${{ inputs.namespace }}" --container wordpress --insecure-skip-tls-verify "${pod}" -- sh -c 'echo "$WORDPRESS_DB_PASSWORD"')    
               if [[ "database_password" == "" ]]; then
                 echo " No password available - skipping"
                 continue
               fi
-              database=$service
               echo " OK"
           
               echo -n "  exporting database from mariadb server for user: '${service}'...";
-              kubectl exec --container mariadb --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c 'mysqldump --user="${service}" --password="${database_password}" --all-databases' > "${folder}/${database}-${date}.sql" || true
+              kubectl exec --container mariadb --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c 'mysqldump --all-databases --user="${service}" --password="${database_password}"' > "${folder}/${database}-${date}.sql" || true
               echo " OK"
             else
               echo -n "  getting database name:";            
