@@ -96,7 +96,7 @@ jobs:
           do
             tmp=${pod##*/}
             
-            if [[ $backup == "shared-wordpress" ]]; then
+            if [[ "$backup" == "shared-wordpress" ]]; then
               service=${tmp//-wordpress-*}
             else
               service=${tmp//-database-0}
@@ -106,7 +106,7 @@ jobs:
             echo -n "  checking if pod is running..."
             date=$(kubectl exec --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "${pod}" --request-timeout=5s -- date) || true            
             if [[ "$date" == "" ]]; then
-              echo "  NOK - skipping...";
+              echo "  NOK - skipping..."
               continue
             fi
             echo " OK";
@@ -118,14 +118,18 @@ jobs:
             
             date=$(date '+date-%Y-%m-%d-time-%H-%M-%S')
             
-            if [[ $backup == "shared-wordpress" ]]; then
-              echo -n "  obtaining service database pass...";
-              database_pass=$(kubectl exec --namespace "${{ inputs.namespace }}" --container wordpress --insecure-skip-tls-verify "${pod}" -- sh -c 'echo "$WORDPRESS_DB_PASSWORD"')              
+            if [[ "$backup" == "shared-wordpress" ]]; then
+              echo -n "  obtaining database password...";
+              database_password=$(kubectl exec --container wordpress --namespace "${{ inputs.namespace }}" --container wordpress --insecure-skip-tls-verify "${pod}" -- sh -c 'echo "$WORDPRESS_DB_PASSWORD"')    
+              if [[ "database_password" == "" ]]; then
+                echo " No password available - skipping"
+                continue
+              fi
               database=$service
               echo " OK"
           
               echo -n "  exporting database from mariadb for user: ${service}...";
-              kubectl exec --container mariadb --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 mariadb-0 -- sh -c 'mysqldump --user="${service}" --password="${database_pass}" --all-databases' > "${folder}/${database}-${date}.sql" || true
+              kubectl exec --container mariadb --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c 'mysqldump --user "${service}" --password "${database_password}" --all-databases' > "${folder}/${database}-${date}.sql" || true
               echo " OK"
             else
               echo -n "  getting database name:";            
