@@ -94,7 +94,7 @@ jobs:
           # for wordpress we need to check if maria db is running
           if [[ "$backup" == "shared-wordpress" ]]; then 
             echo -n "  checking if mariadb-0 is running..."
-            date=$(kubectl exec "mariadb" --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "mariadb-0" --request-timeout=5s -- date)          
+            date=$(kubectl exec --container "mariadb" --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "mariadb-0" --request-timeout=5s -- date)          
             if [[ "$date" == "" ]]; then
               echo "  NOK - terminating";
               exit 1;
@@ -102,12 +102,15 @@ jobs:
             echo " OK";
           fi
           
-          
+          # exports folder
           mkdir "backup"
           
+          # loop in pods which are going to be backuped
           for pod in ${select};
           do
             tmp=${pod##*/}
+          
+            # determine service container
             container=""
             if [[ "$backup" == "shared-wordpress" ]]; then
               service=${tmp//-wordpress-*}
