@@ -87,8 +87,21 @@ jobs:
         run: |    
           backup="${{ inputs.backup }}"
           
+          # we have different selects for postgress apps and for wordpress
           if [[ "$backup" == "shared-wordpress" ]]; then label="app.kubernetes.io/name=wordpress"; else label="service=database"; fi
           select=$(kubectl get pod --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify --selector "$label" --output name | grep -v "clamav-cvdmirror")
+          
+          # for wordpress we need to check if maria db is running
+          if [[ "$backup" == "shared-wordpress" ]]; then 
+            echo -n "  checking if mariadb-0 is running..."
+            date=$(kubectl exec "mariadb" --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "mariadb-0" --request-timeout=5s -- date)          
+            if [[ "$date" == "" ]]; then
+              echo "  NOK - terminating";
+              exit 1;
+            fi
+            echo " OK";
+          fi
+          
           
           mkdir "backup"
           
