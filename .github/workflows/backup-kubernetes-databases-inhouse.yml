@@ -85,7 +85,9 @@ jobs:
 
       - name: Run database backup
         run: |    
+          echo "Starting...";
           backup="${{ inputs.backup }}"
+          echo "We are going to backup: ${backup}";
           
           # we have different selects for postgress apps and for wordpress
           if [[ "$backup" == "shared-wordpress" ]]; then label="app.kubernetes.io/name=wordpress"; else label="service=database"; fi
@@ -93,7 +95,7 @@ jobs:
           
           # for wordpress we need to check if maria db is running
           if [[ "$backup" == "shared-wordpress" ]]; then 
-            echo -n "  checking if mariadb-0 is running..."
+            echo -n "Checking if shared mariadb is running..."
             date=$(kubectl exec --container "mariadb" --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "mariadb-0" --request-timeout=5s -- date)          
             if [[ "$date" == "" ]]; then
               echo "  NOK - terminating";
@@ -150,7 +152,7 @@ jobs:
               echo " OK"
           
               echo -n "  exporting database from mariadb server for user: '${user}'...";
-              command="mysqldump -u \"${user}\" -p\"x\" --all-databases";
+              command="mysqldump -u ${user} -p\"x\" --all-databases";
               echo $command;
               kubectl exec --container mariadb --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c ${command} > "${folder}/${database}-${date}.sql" || true
               echo " OK"
