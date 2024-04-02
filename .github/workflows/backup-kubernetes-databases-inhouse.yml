@@ -134,7 +134,7 @@ jobs:
               echo " OK"
           
               echo -n "  exporting database from mariadb server for user: '${user}'...";
-              command="mysqldump -u \"${user}\" -p\"\" --all-databases";
+              command="mysqldump -u \"${user}\" -p\"x\" --all-databases";
               echo $command;
               kubectl exec --container mariadb --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c ${command} > "${folder}/${database}-${date}.sql" || true
               echo " OK"
