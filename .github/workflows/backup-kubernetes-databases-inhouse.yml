@@ -84,6 +84,7 @@ jobs:
         run: kubectl config use-context ${{ inputs.cluster }}
 
       - name: Run database backup
+        id: dbbackup
         run: |    
           echo "Starting...";
           backup="${{ inputs.backup }}"
@@ -152,9 +153,11 @@ jobs:
               echo " OK"
           
               echo -n "  exporting database from mariadb server for user: '${user}'...";
-              command="mysqldump -u ${user} -px --all-databases";
-              echo $command;
-              kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh 'mysqldump ---user=${user} --password=${database_password} --all-databases' > "${folder}/${database}-${date}.sql" || true
+              dump="mysqldump ---user=${user} --password=${database_password} --all-databases";
+              echo "::add-mask::$dump"
+              echo "command=$dump" >> $GITHUB_OUTPUT
+          
+              kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c ${{steps.dbbackup.outputs.command }} > "${folder}/${database}-${date}.sql" || true
               echo " OK"
             else
               echo -n "  getting database name:";            
