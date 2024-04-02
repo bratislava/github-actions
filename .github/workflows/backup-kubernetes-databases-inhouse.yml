@@ -151,13 +151,9 @@ jobs:
                 continue
               fi
               echo " OK"
-          
-              dump="mysqldump ---user=${user} --password=${database_password} --all-databases";
-              echo "::add-mask::$dump"
-              echo "command=$dump" >> $GITHUB_OUTPUT
-              echo -n "  exporting database from mariadb server for user: '${user}'...";
-          
-              kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c '${{ steps.dbbackup.outputs.command }}' > "${folder}/${database}-${date}.sql" || true
+              echo -n "  exporting database from mariadb server for user: '${user}'...";          
+              kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify "mariadb-0" -- env USER=${user} PASS=${database_password}
+              kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c 'mysqldump ---user=$USER --password=$PASS --all-databases' > "${folder}/${database}-${date}.sql" || true
               echo " OK"
             else
               echo -n "  getting database name:";            
