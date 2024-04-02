@@ -157,8 +157,7 @@ jobs:
               echo "command=$dump" >> $GITHUB_OUTPUT
               echo -n "  exporting database from mariadb server for user: '${user}'...";
 
-              kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify "mariadb-0" -- env USER=${user} PASS=${database_password}
-              kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c '${dump}' > "${folder}/${database}-${date}.sql" || true
+              kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=0 "mariadb-0" -- sh -c ${dump} > "${folder}/${database}-${date}.sql" || true
               echo " OK"
             else
               echo -n "  getting database name:";            
