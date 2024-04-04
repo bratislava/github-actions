@@ -48,13 +48,13 @@ on:
         required: true
       aws-key:
         description: 'AWS key id'
-        required: true
+        required: false
       aws-secret:
         description: 'AWS secret access key'
-        required: true
+        required: false
       aws-bucket:
         description: 'AWS bucket name'
-        required: true
+        required: false
 
 jobs:
   backup:
