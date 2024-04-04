@@ -92,7 +92,7 @@ jobs:
           
           # we have different selects for postgress apps and for wordpress
           if [[ "$backup" == "shared-wordpress" ]]; then label="app.kubernetes.io/name=wordpress"; else label="service=database"; fi
-          select=$(kubectl get pod --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify --request-timeout=5s --selector "$label" --output jsonpath='{.items[*].metadata.name}' | grep -v "clamav-cvdmirror")
+          select=$(kubectl get pod --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify --request-timeout=5s --selector "$label" --output jsonpath='{.items.metadata.name}' | grep -v "clamav-cvdmirror")
           
           # for wordpress we need to check if maria db is running
           if [[ "$backup" == "shared-wordpress" ]]; then 
