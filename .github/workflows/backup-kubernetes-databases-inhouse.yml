@@ -158,7 +158,7 @@ jobs:
             else
               echo -n "  getting database name:"            
               database=$(kubectl exec --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "${pod}" --request-timeout=5s -- sh -c 'echo "$POSTGRES_DB"')              
-              if [[ "database" == "" ]]; then
+              if [[ "$database" == "" ]]; then
                 echo " No database available - skipping"
                 continue
               fi
