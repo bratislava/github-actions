@@ -169,7 +169,7 @@ jobs:
             fi
             
             if [ $(wc -c < "${file}") -eq 0 ]; then
-              echo "NOK - '$file' is empty! "
+              echo " NOK - '$service' has empty backup!"
             fi
             echo " OK"
           done
