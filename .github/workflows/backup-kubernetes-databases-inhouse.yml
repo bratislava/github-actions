@@ -7,6 +7,11 @@ on:
         type: string
         required: false
         default: '["self-hosted", "Linux", "X64", "bratislava"]'
+      aws:
+        description: 'if backup should be uploaded to aws'
+        type: boolean
+        required: false
+        default: false
       backup:
         description: 'Two types of backups postgress or shared-wordpress'
         type: string
@@ -184,11 +189,12 @@ jobs:
           source_dir: 'backup'
           target_dir: '/'
 
-#      - name: Upload backups to AWS
-#        uses: shallwefootball/s3-upload-action@master
-#        with:
-#          aws_key_id: ${{ secrets.aws-key }}
-#          aws_secret_access_key: ${{ secrets.aws-secret}}
-#          aws_bucket: ${{ secrets.aws-bucket }}
-#          source_dir: 'backup'
-#          destination_dir: '/'
+      - name: Upload backups to AWS
+        uses: shallwefootball/s3-upload-action@master
+        if: inputs.aws
+        with:
+          aws_key_id: ${{ secrets.aws-key }}
+          aws_secret_access_key: ${{ secrets.aws-secret}}
+          aws_bucket: ${{ secrets.aws-bucket }}
+          source_dir: 'backup'
+          destination_dir: '/'
