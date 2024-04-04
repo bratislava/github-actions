@@ -179,7 +179,7 @@ jobs:
             fi
             echo " OK"
           done
-          echo "Backup for ${inputs.cluster} finished."
+          echo "Backup finished."
 
       - name: Upload backups to MinIO
         uses: bratislava/minio-deploy-action@v1
