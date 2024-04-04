@@ -158,9 +158,13 @@ jobs:
             else
               echo -n "  getting database name:"            
               database=$(kubectl exec --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "${pod}" --request-timeout=5s -- sh -c 'echo "$POSTGRES_DB"')              
+              if [[ "database" == "" ]]; then
+                echo " No database available - skipping"
+                continue
+              fi
               echo " ${database}"
     
-              echo -n "  creating dump of ${database} database..."
+              echo -n "  creating database dump for ${database}..."
               kubectl exec --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "${pod}" -- sh -c 'pg_dump --clean --create --username "$POSTGRES_USER" --dbname "$POSTGRES_DB"' > $file || true              
             fi
             
