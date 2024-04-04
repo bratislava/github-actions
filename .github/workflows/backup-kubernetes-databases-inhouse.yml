@@ -165,6 +165,7 @@ jobs:
               database=$(kubectl exec --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "${pod}" --request-timeout=5s -- sh -c 'echo "$POSTGRES_DB"')              
               if [[ "$database" == "" ]]; then
                 echo " No database available - skipping"
+                rm -rf $folder
                 continue
               fi
               echo " ${database}"
