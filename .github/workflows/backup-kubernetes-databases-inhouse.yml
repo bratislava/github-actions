@@ -193,14 +193,15 @@ jobs:
           target_dir: '/'
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
         if: inputs.aws
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.aws-key }}
           aws-secret-access-key: ${{ secrets.aws-secret}}
           aws-region: 'eu-central-1'
 
       - name: Upload folder to bucket
+        if: inputs.aws
         uses: a-sync/s3-uploader@master
         with:
           args: --recursive --exclude "*.log"
