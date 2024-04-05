@@ -204,4 +204,4 @@ jobs:
         uses: usualdesigner/s3-artifact-upload@main
         with:
           bucket-name: ${{ secrets.aws-bucket }}
-          file: 'backup'
+          file: 'backup/'
