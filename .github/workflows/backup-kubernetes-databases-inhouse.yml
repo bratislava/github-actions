@@ -1,0 +1,213 @@
+name: Backup kubernetes postgres databases.
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+      aws:
+        description: 'if backup should be uploaded to aws'
+        type: boolean
+        required: false
+        default: false
+      backup:
+        description: 'Two types of backups postgress or shared-wordpress'
+        type: string
+        required: false
+        default: 'postgres'
+      cluster:
+        description: 'Kubernetes cluster name'
+        required: true
+        type: string
+      namespace:
+        description: 'Namespace where apps will be used for backup'
+        required: true
+        type: string
+      url:
+        description: 'Kubernetes cluster url'
+        default: 'https://tkg.dev.bratislava.sk'
+        required: true
+        type: string
+    secrets:
+      service-account:
+        description: 'Kubernetes service account'
+        required: true
+      minio-endpoint:
+        description: 'Minio endpoint url'
+        required: true
+      minio-access:
+        description: 'Minio access key'
+        required: true
+      minio-secret:
+        description: 'Minio secret key'
+        required: true
+      minio-bucket:
+        description: 'Minio bucket name'
+        required: true
+      aws-key:
+        description: 'AWS key id'
+        required: false
+      aws-secret:
+        description: 'AWS secret access key'
+        required: false
+      aws-bucket:
+        description: 'AWS bucket name'
+        required: false
+
+jobs:
+  backup:
+    name: Backup databases
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.1.0"
+
+      - name: Directory check
+        run: pwd
+
+      - name: Kubectl tool installer
+        uses: Azure/setup-kubectl@v4.0.0
+
+      - name: Kubernetes set service account token
+        run: kubectl config set-credentials default --token=${{ secrets.service-account }}
+
+      - name: Kubernetes set server with certificate account token
+        run: kubectl config set-cluster ${{ inputs.cluster }}  --insecure-skip-tls-verify --server=${{ inputs.url }}
+
+      - name: Kubernetes set context cluster
+        run: kubectl config set-context ${{ inputs.cluster }} --cluster=${{ inputs.cluster }} --user=default
+
+      - name: Kubernetes use context
+        run: kubectl config use-context ${{ inputs.cluster }}
+
+      - name: Run database backup
+        id: dbbackup
+        run: |    
+          echo "Starting..."
+          backup="${{ inputs.backup }}"
+          echo "We are going to backup: ${backup}"
+          
+          # we have different selects for postgress apps and for wordpress
+          if [[ "$backup" == "shared-wordpress" ]]; then label="app.kubernetes.io/name=wordpress"; else label="service=database"; fi
+          select=$(kubectl get pod --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify --request-timeout=5s --selector "$label" --output jsonpath='{.items..metadata.name}')
+          
+          # for wordpress we need to check if maria db is running
+          if [[ "$backup" == "shared-wordpress" ]]; then 
+            echo -n "Checking if shared mariadb is running..."
+            date=$(kubectl exec --container "mariadb" --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "mariadb-0" --request-timeout=5s -- date)          
+            if [[ "$date" == "" ]]; then
+              echo "  NOK - terminating"
+              exit 1;
+            fi
+            echo " OK"
+          fi
+          
+          # exports folder
+          mkdir "backup"
+          
+          # loop in pods which are going to be backuped
+          for pod in ${select};
+          do          
+            # determine service container
+            container=""
+            if [[ "$backup" == "shared-wordpress" ]]; then
+              service=${pod//-wordpress-*}
+              container=" --container wordpress "
+            else
+              service=${pod//-database-0}
+            fi
+            echo "Service: ${service}"
+          
+            echo -n "  checking if pod is running..."
+            date=$(kubectl exec ${container} --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "${pod}" --request-timeout=5s -- date) || true            
+            if [[ "$date" == "" ]]; then
+              echo "  NOK - skipping..."
+              continue
+            fi
+            echo " OK"
+          
+            folder="backup/${{ inputs.cluster }}/${{ inputs.namespace }}/${service}"
+            echo -n "  creating export folder ${folder}..."
+            mkdir -p $folder
+            echo " OK"
+            
+            date=$(date '+date-%Y-%m-%d-time-%H-%M-%S')
+          
+            if [[ "$backup" == "shared-wordpress" ]]; then
+              echo -n "  database name:"
+              database=$service
+              user=$service
+              file="${folder}/${database}-${date}.sql"
+              echo " ${database}"
+          
+              echo -n "  obtaining database password..."
+              database_password=$(kubectl exec --container wordpress --namespace "${{ inputs.namespace }}" --request-timeout=5s --insecure-skip-tls-verify "${pod}" -- sh -c 'echo "$WORDPRESS_DB_PASSWORD"')    
+              if [[ "database_password" == "" ]]; then
+                echo " No password available - skipping"
+                continue
+              fi
+              echo " OK"
+          
+              dump="mysqldump --user=\"${user}\" --password=\"${database_password}\" --all-databases"
+              echo -n "  exporting database from mariadb server for user: '${user}'..."
+
+              kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=5s "mariadb-0" -- sh -c "${dump}" > $file || true
+            else
+              echo -n "  getting database name:"            
+              database=$(kubectl exec --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "${pod}" --request-timeout=5s -- sh -c 'echo "$POSTGRES_DB"')              
+              if [[ "$database" == "" ]]; then
+                echo " No database available - skipping"
+                rm -rf $folder
+                continue
+              fi
+              file="${folder}/${database}-${date}.sql"
+              echo " ${database}"
+    
+              echo -n "  creating database dump for ${database}..."
+              kubectl exec --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify "${pod}" -- sh -c 'pg_dump --clean --create --username "$POSTGRES_USER" --dbname "$POSTGRES_DB"' > $file || true              
+            fi
+            
+            if [ $(wc -c < "${file}") -eq 0 ]; then
+              echo " NOK - '$service' has empty backup!"
+            fi
+            echo " OK"
+          done
+          echo "Backup finished."
+
+      - name: Upload backups to MinIO
+        uses: bratislava/minio-deploy-action@v1
+        with:
+          endpoint: ${{ secrets.minio-endpoint }}
+          access_key: ${{ secrets.minio-access }}
+          secret_key: ${{ secrets.minio-secret }}
+          bucket: ${{ secrets.minio-bucket }}
+          source_dir: 'backup'
+          target_dir: '/'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        if: inputs.aws
+        with:
+          aws-access-key-id: ${{ secrets.aws-key }}
+          aws-secret-access-key: ${{ secrets.aws-secret}}
+          aws-region: 'eu-central-1'
+
+      - name: Upload folder to bucket
+        uses: a-sync/s3-uploader@master
+        with:
+          args: --recursive --exclude "*.log"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws-key }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws-secret}}
+          AWS_REGION: 'eu-central-1'
+          S3_BUCKET: ${{ secrets.aws-bucket}}
+          S3_KEY: 'backup'
+          FILE: 'backup'
