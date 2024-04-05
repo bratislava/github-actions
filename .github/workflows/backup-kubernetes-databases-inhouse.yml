@@ -199,9 +199,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.aws-secret}}
           aws-region: 'eu-central-1'
 
-      - name: Upload artifacts to AWS S3
-        if: inputs.aws
-        uses: usualdesigner/s3-artifact-upload@main
+      - name: Upload folder to bucket
+        uses: a-sync/s3-uploader@master
         with:
-          bucket-name: ${{ secrets.aws-bucket }}
-          file: 'backup/'
+          args: --recursive --exclude "*.log"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws-key }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws-secret}}
+          AWS_REGION: 'eu-central-1'
+          S3_BUCKET: ${{ secrets.aws-bucket}}
+          S3_KEY: 'backup'
+          FILE: 'backup'
