@@ -140,12 +140,12 @@ jobs:
             echo " OK"
             
             date=$(date '+date-%Y-%m-%d-time-%H-%M-%S')
-            file="${folder}/${database}-${date}.sql"
           
             if [[ "$backup" == "shared-wordpress" ]]; then
               echo -n "  database name:"
               database=$service
               user=$service
+              file="${folder}/${database}-${date}.sql"
               echo " ${database}"
           
               echo -n "  obtaining database password..."
@@ -168,6 +168,7 @@ jobs:
                 rm -rf $folder
                 continue
               fi
+              file="${folder}/${database}-${date}.sql"
               echo " ${database}"
     
               echo -n "  creating database dump for ${database}..."
