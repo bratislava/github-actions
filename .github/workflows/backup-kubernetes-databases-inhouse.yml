@@ -200,6 +200,7 @@ jobs:
           aws-region: 'eu-central-1'
 
       - name: Upload artifacts to AWS S3
+        if: inputs.aws
         uses: usualdesigner/s3-artifact-upload@main
         with:
           bucket-name: ${{ secrets.aws-bucket }}
