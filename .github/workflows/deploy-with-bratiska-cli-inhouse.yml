@@ -123,6 +123,9 @@ jobs:
       - name: Kubernetes use context
         run: kubectl config use-context ${{ inputs.cluster }}
 
+      - name: Kubernetes check connection
+        run: kubectl get serviceAccounts default -n ${{ inputs.namespace }} --request-timeout=3
+
       - name: Login to Harbor
         uses: docker/login-action@v2
         with:
