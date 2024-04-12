@@ -2,6 +2,11 @@ name: General workflow which initialize kubernetes with docker and runs bratiska
 on:
   workflow_call:
     inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
       directory:
         description: 'A Folder within the repository where deployment should be called'
         default: '/'
@@ -47,11 +52,11 @@ on:
         default: 'stable'
         required: false
         type: string
-      runs-on:
-        description: 'Define the type of machine to run the job on'
-        type: string
+      skip_deployment_check:
+        description: 'Flag - skip checking if the kubernetes deployment was deployed successfully'
+        default: ''
         required: false
-        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+        type: string
 
     secrets:
       sentry-token:
@@ -82,7 +87,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.1.0"
+          echo "Pipelines version: 2.2.0"
 
       - name: Directory check
         run: pwd
@@ -144,7 +149,7 @@ jobs:
         run: bratiska-cli deploy --version
 
       - name: Running build and deploy with Bratiska-cli
-        run: bratiska-cli deploy ${{ inputs.flag }} --namespace=${{ inputs.namespace }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
+        run: bratiska-cli deploy ${{ inputs.flag }} --namespace=${{ inputs.namespace }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }} ${{ inputs.skip_deployment_check }}
         continue-on-error: false
 
       - name: Print pipeline summary
