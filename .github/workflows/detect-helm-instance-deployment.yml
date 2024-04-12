@@ -32,7 +32,7 @@ jobs:
 
     - name: Pipelines Version
       run: |
-        echo "Pipelines version: 2.1.0"
+        echo "Pipelines version: 2.2.0"
         
     - id: clean
       name: Clean tag name
