@@ -1,9 +1,15 @@
-name: Workflow which detects what helm instance should be deployed
+name: Workflow which detects cluster, instance and command
 on:
   workflow_call:
+    inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
     outputs:
       command:
-        description: "Helm command value"
+        description: "Command value"
         value: ${{ jobs.detect.outputs.command }}
       cluster:
         description: "cluster type as dev, staging or prod"
@@ -11,6 +17,9 @@ on:
       instance:
         description: "Returns value of instance"
         value: ${{ jobs.detect.outputs.instance }}
+      helm:
+        description: 'if commands are supported by helm'
+        value: ${{ jobs.detect.outputs.helm }}
       valuesfile:
         description: "Returns path of valuesfile"
         value: ${{ jobs.detect.outputs.valuesfile }}
@@ -18,7 +27,7 @@ on:
 jobs:
   detect:
     name: Checking deployment conditions
-    runs-on: ubuntu-latest
+    runs-on: ${{fromJSON(inputs.runs-on)}}
     outputs:
       command: ${{ steps.out.outputs.command }}
       cluster: ${{ steps.out.outputs.cluster }}
@@ -33,7 +42,7 @@ jobs:
     - name: Pipelines Version
       run: |
         echo "Pipelines version: 2.2.0"
-        
+
     - id: clean
       name: Clean tag name
       env:
@@ -61,6 +70,16 @@ jobs:
       run: |
         echo "COMMAND=${SUB%%-*}" >> $GITHUB_ENV
 
+    - id: helm
+      name: Check if commands are supported by helm
+      run: |
+        if [[( "$COMMAND" == "install"  ||  "$COMMAND" == "uninstall" || "$COMMAND" == "upgrade" )]]
+        then
+          echo "HELM=true" >> $GITHUB_ENV   
+        else
+          echo "HELM=false" >> $GITHUB_ENV 
+        fi        
+
     - id: out
       name: Set ouptuts
       run: |
@@ -68,6 +87,7 @@ jobs:
         echo "cluster=${CLUSTER}" >> $GITHUB_OUTPUT
         echo "instance=${INSTANCE}" >> $GITHUB_OUTPUT
         echo "valuesfile=deployments/${CLUSTER}/${INSTANCE}.yml" >> $GITHUB_OUTPUT
+        echo "helm=${HELM}" >> $GITHUB_OUTPUT
 
     - name: Print Outputs
       run: |
@@ -75,13 +95,14 @@ jobs:
         echo ${{ steps.out.outputs.cluster }}
         echo ${{ steps.out.outputs.instance }}
         echo ${{ steps.out.outputs.valuesfile }}
+        echo ${{ steps.out.outputs.helm }}
 
     - id: no-instance
       if: env.INSTANCE == ''
       uses: actions/github-script@v3
       with:
         script: |
-          core.setFailed(':heavy_exclamation_mark: We have no helm instances. Exiting pipeline with Fail status.')
+          core.setFailed(':heavy_exclamation_mark: We have no instance. Exiting pipeline with Fail status.')
 
     - id: no-cluster
       if: env.CLUSTER == ''
@@ -95,14 +116,14 @@ jobs:
       uses: actions/github-script@v3
       with:
         script: |
-          core.setFailed(':heavy_exclamation_mark: We have no helm command. Exiting pipeline with Fail status.')
+          core.setFailed(':heavy_exclamation_mark: We have no command. Exiting pipeline with Fail status.')
 
     - id: unsupported-command
-      if: env.COMMAND != 'install' && env.COMMAND != 'upgrade' && env.COMMAND != 'uninstall'
+      if: env.COMMAND != 'install' && env.COMMAND != 'upgrade' && env.COMMAND != 'uninstall' && env.COMMAND != 'syncfromprod'
       uses: actions/github-script@v3
       with:
         script: |
-          core.setFailed(':heavy_exclamation_mark: Unsupported helm command. Only `install`, `upgrade` and `uninstall` are supported. Exiting pipeline with Fail status.')
+          core.setFailed(`:heavy_exclamation_mark: Unsupported command "${env.COMMAND}". Only `install`, `upgrade`, `uninstall` and `syncfromprod` are supported. Exiting pipeline with Fail status.`)
 
     - id: check_files
       name: Check file existence
@@ -113,7 +134,7 @@ jobs:
 
     - name: Print info
       run: |
-        echo "## Detected helm deployment :rocket:" >> $GITHUB_STEP_SUMMARY
+        echo "## Deploy summary :rocket:" >> $GITHUB_STEP_SUMMARY
         echo ":arrow_right: Command: **${{ steps.out.outputs.command }}**" >> $GITHUB_STEP_SUMMARY
         echo ":arrow_right: Instance: **${{ steps.out.outputs.instance }}**" >> $GITHUB_STEP_SUMMARY
         echo ":arrow_right: Cluster: **${{ steps.out.outputs.cluster }}**" >> $GITHUB_STEP_SUMMARY

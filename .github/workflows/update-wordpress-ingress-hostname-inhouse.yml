@@ -1,0 +1,114 @@
+name: Update wordpress ingress hostname
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+      instance:
+        description: 'Kubernetes app.kubernetes.io/instance'
+        required: true
+        type: string
+      namespace:
+        description: 'Namespace where instance can be checked by helm'
+        default: 'wordpress'
+        required: true
+        type: string
+      cluster:
+        description: 'Kubernetes cluster name'
+        default: 'tkg-innov-dev'
+        required: true
+        type: string
+      url:
+        description: 'Kubernetes cluster url'
+        default: 'https://tkg.dev.bratislava.sk'
+        required: true
+        type: string
+    secrets:
+      service-account:
+        description: 'Kubernetes service account'
+        required: true
+
+jobs:
+  restore:
+    name: Updated hostname in ingress
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.2.0"
+
+      - name: Directory check
+        run: pwd
+
+      - name: Kubectl tool installer
+        uses: Azure/setup-kubectl@v4.0.0
+
+      - name: Kubernetes set service account token
+        run: kubectl config set-credentials default --token=${{ secrets.service-account }}
+
+      - name: Kubernetes set server with certificate account token
+        run: kubectl config set-cluster ${{ inputs.cluster }}  --insecure-skip-tls-verify --server=${{ inputs.url }}
+
+      - name: Kubernetes set context cluster
+        run: kubectl config set-context ${{ inputs.cluster }} --cluster=${{ inputs.cluster }} --user=default
+
+      - name: Kubernetes use context
+        run: kubectl config use-context ${{ inputs.cluster }}
+
+      - name: Create tmp/ folder and set permissions
+        run: |
+          mkdir tmp/
+          chmod 777 tmp/
+
+      - name: Set env variables
+        run: |
+          echo "PROD_VALUESFILE"=/deployments/prod/${{ inputs.instance }}.yml >> $GITHUB_ENV
+          echo "STAGING_VALUESFILE"=/deployments/staging/${{ inputs.instance }}.yml >> $GITHUB_ENV
+          echo "OLD_INGRESS"=tmp/old_ingress.yml >> $GITHUB_ENV
+          echo "NEW_INGRESS"=tmp/new_ingress.yml >> $GITHUB_ENV
+
+      - name: Download ingress
+        run: kubectl get ingress ${{ inputs.instance }}-wordpress --namespace ${{ inputs.namespace }} -o yaml > $OLD_INGRESS
+
+      - name: Check if ingress dump was downloaded
+        run: |
+          if [ ! -f ${OLD_INGRESS} ]; then
+           echo " NOK - ${OLD_INGRESS} is empty"
+           exit 1;
+          fi
+          echo " Ingress was successfully downloaded"
+
+      - name: Get new hostname from values file
+        id: get_new_hostname
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.ingress.hostname' ${STAGING_VALUESFILE}
+
+      - name: Get old hostname from values file
+        id: get_old_hostname
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.ingress.hostname' ${PROD_VALUESFILE}
+
+      - name: Replace urls to new in DB Dump
+        run: |
+          sed "s#${{ steps.get_old_hostname.outputs.result }}#${{ steps.get_new_hostname.outputs.result }}#g" $OLD_INGRESS > $NEW_INGRESS
+
+      - name: Update ingress
+        run: kubectl apply -f $NEW_INGRESS
+
+      - name: Restart wordpress
+        run: kubectl rollout restart deployment --namespace ${{ inputs.namespace }} --selector=app.kubernetes.io/instance=${{ inputs.instance }}
+
+      - name: Print info
+        run: |
+          echo "## Staging wordpress ${{ steps.out.outputs.instance }} :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: url: **https://${{ steps.get_new_hostname.outputs.result }}**" >> $GITHUB_STEP_SUMMARY
