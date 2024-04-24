@@ -1,0 +1,56 @@
+name: Validate typescript
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: "Define the type of machine to run the job on"
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+      workdir:
+        description: "Where typescript have to be checked"
+        type: string
+        required: false
+        default: './next'
+      node:
+        description: "Define node version"
+        type: string
+        required: false
+        default: '20'
+      level:
+        description: "Change reporter level if you need"
+        type: string
+        required: false
+        default: 'warning'
+
+jobs:
+  test:
+    name: Test typescript
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.2.0"  
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{inputs.node}}
+
+      - run: yarn --frozen-lockfile
+
+      - name: Typescript check
+        uses: EPMatt/reviewdog-action-tsc@v1
+        with:
+          # Change reviewdog reporter if you need
+          # [github-pr-check,github-check,github-pr-review].
+          # More about reviewdog reporters at
+          # https://github.com/reviewdog/reviewdog#reporters
+          reporter: github-check
+          # Change reporter level if you need
+          # [info,warning,error].
+          # More about reviewdog reporter level at
+          # https://github.com/reviewdog/reviewdog#reporters
+          level: ${{inputs.level}}
+          workdir: ${{inputs.workdir}}
