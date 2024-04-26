@@ -69,7 +69,7 @@ jobs:
 
       - id: unsupported-command
         if: inputs.command != 'install' && inputs.command != 'upgrade' && inputs.command != 'uninstall'
-        uses: actions/github-script@v3
+        uses: actions/github-script@v7.0.1
         with:
           script: |
             core.setFailed(':heavy_exclamation_mark: Unsupported helm command. Only `install`, `upgrade` and `uninstall` are supported. Exiting pipeline with Fail status.')
@@ -81,7 +81,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.2.0"
+          echo "Pipelines version: 2.2.1"
 
       - name: Directory check
         run: pwd
@@ -157,7 +157,7 @@ jobs:
 
       - name: Print pipeline comment
         if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v2.9.0
         with:
           message: |
             ${{ env.GITHUB_STEP_SUMMARY }}

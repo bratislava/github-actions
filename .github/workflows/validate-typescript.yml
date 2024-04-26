@@ -23,20 +23,20 @@ jobs:
     name: Test typescript
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.2.0"  
+          echo "Pipelines version: 2.2.1"  
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{inputs.node}}
 
       - run: yarn --frozen-lockfile
 
       - name: Typescript check
-        uses: EPMatt/reviewdog-action-tsc@v1
+        uses: EPMatt/reviewdog-action-tsc@v1.7.0
         with:
           # Change reviewdog reporter if you need
           # [github-pr-check,github-check,github-pr-review].

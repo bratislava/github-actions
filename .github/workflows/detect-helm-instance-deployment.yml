@@ -32,7 +32,7 @@ jobs:
 
     - name: Pipelines Version
       run: |
-        echo "Pipelines version: 2.2.0"
+        echo "Pipelines version: 2.2.1"
         
     - id: clean
       name: Clean tag name
@@ -78,28 +78,28 @@ jobs:
 
     - id: no-instance
       if: env.INSTANCE == ''
-      uses: actions/github-script@v3
+      uses: actions/github-script@v7.0.1
       with:
         script: |
           core.setFailed(':heavy_exclamation_mark: We have no helm instances. Exiting pipeline with Fail status.')
 
     - id: no-cluster
       if: env.CLUSTER == ''
-      uses: actions/github-script@v3
+      uses: actions/github-script@v7.0.1
       with:
         script: |
           core.setFailed(':heavy_exclamation_mark: We have no cluster. Exiting pipeline with Fail status.')
 
     - id: no-command
       if: env.COMMAND == ''
-      uses: actions/github-script@v3
+      uses: actions/github-script@v7.0.1
       with:
         script: |
           core.setFailed(':heavy_exclamation_mark: We have no helm command. Exiting pipeline with Fail status.')
 
     - id: unsupported-command
       if: env.COMMAND != 'install' && env.COMMAND != 'upgrade' && env.COMMAND != 'uninstall'
-      uses: actions/github-script@v3
+      uses: actions/github-script@v7.0.1
       with:
         script: |
           core.setFailed(':heavy_exclamation_mark: Unsupported helm command. Only `install`, `upgrade` and `uninstall` are supported. Exiting pipeline with Fail status.')
