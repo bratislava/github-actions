@@ -96,5 +96,6 @@ jobs:
           header: Build Conditions
           append: true
           message: |
-           ${GITHUB_STEP_SUMMARY}
-
+            ```
+            ${{ env.GITHUB_STEP_SUMMARY }}
+            ```
