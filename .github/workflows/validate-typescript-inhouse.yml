@@ -27,6 +27,9 @@ jobs:
   test:
     name: Test typescript
     runs-on: ${{fromJSON(inputs.runs-on)}}
+    defaults:
+      run:
+        working-directory: ${{ inputs.workdir }}
     steps:
       - uses: actions/checkout@v4
 
