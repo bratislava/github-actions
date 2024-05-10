@@ -1,0 +1,81 @@
+name: Remove resources from kubernetes
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+      instance:
+        description: 'Kubernetes app.kubernetes.io/instance'
+        required: true
+        type: string
+      namespace:
+        description: 'Namespace where instance can be checked by helm'
+        default: 'standalone'
+        required: true
+        type: string
+      cluster:
+        description: 'Kubernetes cluster name'
+        default: 'tkg-innov-dev'
+        required: true
+        type: string
+      url:
+        description: 'Kubernetes cluster url'
+        default: 'https://tkg.dev.bratislava.sk'
+        required: true
+        type: string
+    secrets:
+      service-account:
+        description: 'Kubernetes service account'
+        required: true
+
+jobs:
+  remove:
+    name: Remove instance resources
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.2.0"
+
+      - name: Directory check
+        run: pwd
+
+      - name: Kubectl tool installer
+        uses: Azure/setup-kubectl@v4.0.0
+
+      - name: Kubernetes set service account token
+        run: kubectl config set-credentials default --token=${{ secrets.service-account }}
+
+      - name: Kubernetes set server with certificate account token
+        run: kubectl config set-cluster ${{ inputs.cluster }}  --insecure-skip-tls-verify --server=${{ inputs.url }}
+
+      - name: Kubernetes set context cluster
+        run: kubectl config set-context ${{ inputs.cluster }} --cluster=${{ inputs.cluster }} --user=default
+
+      - name: Kubernetes use context
+        run: kubectl config use-context ${{ inputs.cluster }}
+
+      - name: Helm tool installer
+        uses: azure/setup-helm@v4.1.0
+
+      - name: Helm version
+        run: helm version
+
+      - name: Print pipeline summary
+        run: |
+          echo "### Remove resources from kubernetes:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: app.kubernetes.io/instance: **${{ inputs.instance }}**" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Namespace: **${{ inputs.namespace }}**" >> $GITHUB_STEP_SUMMARY  
+          echo ":arrow_right: Cluster: **${{ inputs.cluster }}**" >> $GITHUB_STEP_SUMMARY  
+
+      - name: Delete instance resources
+        run: |
+          kubectl delete deployment,pod,service,statefulset,pvc,ingress,configmap,secret,ingress --namespace ${{ inputs.namespace }} --selector=app.kubernetes.io/instance=${{ inputs.instance }} --wait=true

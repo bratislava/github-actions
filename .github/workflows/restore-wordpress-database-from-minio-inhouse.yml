@@ -1,0 +1,189 @@
+name: Restore wordpress database from DB backup
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+      instance:
+        description: 'Kubernetes app.kubernetes.io/instance'
+        required: true
+        type: string
+      namespace:
+        description: 'Namespace'
+        default: 'wordpress'
+        required: true
+        type: string
+      cluster:
+        description: 'Kubernetes cluster name'
+        default: 'tkg-innov-dev'
+        required: true
+        type: string
+      url:
+        description: 'Kubernetes cluster url'
+        default: 'https://tkg.dev.bratislava.sk'
+        required: true
+        type: string
+    secrets:
+      service-account:
+        description: 'Kubernetes service account'
+        required: true
+      minio-endpoint:
+        description: 'Minio endpoint url'
+        required: true
+      minio-access:
+        description: 'Minio access key'
+        required: true
+      minio-secret:
+        description: 'Minio secret key'
+        required: true
+      minio-bucket:
+        description: 'Minio bucket name'
+        required: true
+
+jobs:
+  restore:
+    name: Restore wordpress database from minio
+    runs-on: ${{fromJSON(inputs.runs-on)}}
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.2.0"
+
+      - name: Directory check
+        run: pwd
+
+      - name: Set proper PATH
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "/usr/bin" >> $GITHUB_PATH
+
+      - name: Kubectl tool installer
+        uses: Azure/setup-kubectl@v4.0.0
+
+      - name: Kubernetes set service account token
+        run: kubectl config set-credentials default --token=${{ secrets.service-account }}
+
+      - name: Kubernetes set server with certificate account token
+        run: kubectl config set-cluster ${{ inputs.cluster }}  --insecure-skip-tls-verify --server=${{ inputs.url }}
+
+      - name: Kubernetes set context cluster
+        run: kubectl config set-context ${{ inputs.cluster }} --cluster=${{ inputs.cluster }} --user=default
+
+      - name: Kubernetes use context
+        run: kubectl config use-context ${{ inputs.cluster }}
+
+      - name: Set env variables
+        run: |
+          echo "PROD_VALUESFILE"=deployments/prod/${{ inputs.instance }}.yml >> $GITHUB_ENV
+          echo "STAGING_VALUESFILE"=deployments/staging/${{ inputs.instance }}.yml >> $GITHUB_ENV
+          echo "UPDATEDDUMP"=db/updateddump.sql >> $GITHUB_ENV
+
+      - name: Create tmp db/ folder and set permissions
+        run: |
+          mkdir db/
+          chmod 777 db/
+
+      - name: Check if STAGING_VALUESFILE and PROD_VALUESFILE files exists
+        run: |
+          if [ ! -f ${STAGING_VALUESFILE} ]; then
+           echo " NOK - ${STAGING_VALUESFILE} is empty"
+           exit 1;
+          fi
+          echo " ${STAGING_VALUESFILE} is present"
+          
+          if [ ! -f ${PROD_VALUESFILE} ]; then
+           echo " NOK - ${PROD_VALUESFILE} is empty"
+           exit 1;
+          fi
+          echo " ${PROD_VALUESFILE} is present"
+
+      - name: Minio database download
+        uses: bratislava/minio-download-action@v1
+        with:
+          endpoint: ${{ secrets.minio-endpoint }}
+          access_key: ${{ secrets.minio-access }}
+          secret_key: ${{ secrets.minio-secret }}
+          bucket: ${{ secrets.minio-bucket }}
+          remote_path: 'tkg-innov-prod/${{ inputs.namespace }}/${{ inputs.instance }}/'
+          local_path: 'db/'
+          args: '--newer-than 2h30m --recursive'
+
+      - name: Get DB dump filename
+        run: |
+          pwd
+          file=$(find db -mindepth 1 -print -quit)
+          echo "DUMPFILE=$file" >> $GITHUB_ENV
+
+      - name: Check if DB dump was downloaded
+        run: |
+          if [ ! -f ${DUMPFILE} ]; then
+           echo " NOK - ${DUMPFILE} is empty"
+           exit 1;
+          fi
+          echo " Dumpfile was successfully downloaded"
+
+      - name: Get new hostname from values file
+        id: get_new_hostname
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.ingress.hostname' ${STAGING_VALUESFILE}
+
+      - name: Get old hostname from values file
+        id: get_old_hostname
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.ingress.hostname' ${PROD_VALUESFILE}
+
+      - name: Create MATCH and REPLACE values
+        run: |
+          echo "MATCH=(1,'siteurl','https://${{ steps.get_old_hostname.outputs.result }}','yes'),(2,'home','https://${{ steps.get_old_hostname.outputs.result }}','yes')" >> $GITHUB_ENV
+          echo "REPLACE=(1,'siteurl','https://${{ steps.get_new_hostname.outputs.result }}','yes'),(2,'home','https://${{ steps.get_new_hostname.outputs.result }}','yes')" >> $GITHUB_ENV
+
+      - name: Replace urls to new in DB Dump
+        run: |
+          sed "s#${MATCH}#${REPLACE}#g" $DUMPFILE > $UPDATEDDUMP    
+
+      - name: Set up password credentials and import database to mariadb
+        run: |
+          WORDPRESS_DB_PASSWORD=$(kubectl get secret ${{ inputs.instance }}-wordpress --namespace ${{ inputs.namespace }} -o jsonpath='{.data.WORDPRESS_DB_PASSWORD}' | base64 --decode)
+          MARIADB_ROOT_PASSWORD=$(kubectl exec --container "mariadb" --namespace "${{ inputs.namespace }}" --request-timeout=5s --insecure-skip-tls-verify "mariadb-0" -- sh -c 'echo "$MARIADB_ROOT_PASSWORD"') 
+          
+          sql_create="mysql --user=root -p\"${MARIADB_ROOT_PASSWORD}\" --execute=\"CREATE DATABASE IF NOT EXISTS ${{ inputs.instance }} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL PRIVILEGES ON ${{ inputs.instance }}.* TO '${{ inputs.instance }}'@'%' IDENTIFIED BY '${WORDPRESS_DB_PASSWORD}'; FLUSH PRIVILEGES;\""
+          response_create=$(kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=5s "mariadb-0" -- sh -c "${sql_create}")
+          
+          if [[ "$response_create" != "" ]]; then
+            echo " NOK - Unable to create db and user in shared mariaDB!"
+            exit 1;
+          fi
+          echo " Users in mariaDB created."
+          
+          response_copy=$(kubectl cp ${UPDATEDDUMP} ${{ inputs.namespace }}/mariadb-0:/tmp/sql_import.sql --container "mariadb")
+          if [[ "$response_copy" != "" ]]; then
+            echo " NOK - Unable to copy db dump in shared mariaDB pod!"
+            exit 1;
+          fi
+          echo " SQL dump copied to mariaDB."
+          
+          sql_import="mysql --user=root -p\"${MARIADB_ROOT_PASSWORD}\" ${{ inputs.instance }} < /tmp/sql_import.sql"
+          response_import=$(kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=5s "mariadb-0" -- sh -c "${sql_import}")
+
+          if [[ "$response_import" != "" ]]; then
+            echo " NOK - Unable to import db in shared mariaDB!"
+            exit 1;
+          fi
+          echo " SQL dump imported to mariaDB."
+          
+          clean_dumpfile=$(kubectl exec --container "mariadb" --namespace ${{ inputs.namespace }} --insecure-skip-tls-verify --request-timeout=5s "mariadb-0" -- sh -c "rm /tmp/sql_import.sql")
+          if [[ "$clean_dumpfile" != "" ]]; then
+            echo " NOK - Unable to clean sql dump file in mariaDB!"
+            exit 1;
+          fi
+          echo " SQL dump was cleaned from mariaDB."
