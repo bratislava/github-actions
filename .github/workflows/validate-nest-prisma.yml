@@ -12,6 +12,11 @@ on:
         type: string
         required: false
         default: '20'
+      level:
+        description: "Change reporter level if you need"
+        type: string
+        required: false
+        default: 'warning'
 
 jobs:
   test:
@@ -71,8 +76,8 @@ jobs:
           # [info,warning,error].
           # More about reviewdog reporter level at
           # https://github.com/reviewdog/reviewdog#reporters
-          level: warning
-          workdir: ./src
+          level: ${{inputs.level}}
+          workdir: ${{ inputs.directory }}/src
 
       - name: Typescript check
         run: npx tsc
