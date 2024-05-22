@@ -7,11 +7,24 @@ on:
         type: string
         required: false
         default: '["self-hosted", "Linux", "X64", "bratislava"]'
+      directory:
+        description: "Where typescript have to be checked"
+        type: string
+        required: false
+        default: './'
+      node:
+        description: "Define node version"
+        type: string
+        required: false
+        default: '20'
 
 jobs:
   test:
     name: Unit tests
     runs-on: ${{fromJSON(inputs.runs-on)}}
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,6 +48,9 @@ jobs:
   lint:
     name: Code quality
     runs-on: ${{fromJSON(inputs.runs-on)}}
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
