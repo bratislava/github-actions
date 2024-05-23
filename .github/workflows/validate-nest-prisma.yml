@@ -31,7 +31,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.2.2"
+          echo "Pipelines version: 2.2.3"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -80,6 +80,10 @@ jobs:
           workdir: ${{ inputs.directory }}/src
 
       - name: Typescript check
+        # Review dog will fail when pull request has more than 300 changed files.
+        # We want that next typescript check will do its job for all files
+        # https://stackoverflow.com/questions/58858429/how-to-run-a-github-actions-step-even-if-the-previous-step-fails-while-still-f
+        if: success() || failure()
         run: npx tsc
 
       - name: ESlint check
