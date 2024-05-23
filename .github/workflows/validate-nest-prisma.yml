@@ -31,7 +31,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.2.3"
+          echo "Pipelines version: 2.2.4"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -66,6 +66,9 @@ jobs:
 
       - name: Typescript reviewdog check
         uses: EPMatt/reviewdog-action-tsc@v1.7.0
+        # Review dog will fail when pull request has more than 300 changed files.
+        # We want that next typescript check will do its job for all files
+        continue-on-error: true
         with:
           # Change reviewdog reporter if you need
           # [github-pr-check,github-check,github-pr-review].
@@ -80,10 +83,6 @@ jobs:
           workdir: ${{ inputs.directory }}/src
 
       - name: Typescript check
-        # Review dog will fail when pull request has more than 300 changed files.
-        # We want that next typescript check will do its job for all files
-        # https://stackoverflow.com/questions/58858429/how-to-run-a-github-actions-step-even-if-the-previous-step-fails-while-still-f
-        if: success() || failure()
         run: npx tsc
 
       - name: ESlint check
