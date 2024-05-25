@@ -17,6 +17,11 @@ on:
         default: 'stable'
         required: false
         type: string
+      build_image_no_registry:
+        description: 'If you want to build image without registry.'
+        default: '--build_image_no_registry'
+        required: false
+        type: string
 
     secrets:
       sentry-token:
@@ -81,7 +86,7 @@ jobs:
             :partying_face: Bratiska-cli successfully created an kustomize file.
 
       - name: Running build with Bratiska-cli
-        run: bratiska-cli build_image --env=staging --build_image_no_registry ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
+        run: bratiska-cli build_image --env=staging ${{ inputs.build_image_no_registry }} ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
         continue-on-error: false
 
       - name: Print pipeline summary - image build
