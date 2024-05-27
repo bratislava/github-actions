@@ -2,6 +2,11 @@ name: General workflow which builds image from source using bratiska-cli.
 on:
   workflow_call:
     inputs:
+      runs-on:
+        description: 'Define the type of machine to run the job on'
+        type: string
+        required: false
+        default: '["self-hosted", "Linux", "X64", "bratislava"]'
       directory:
         description: 'A Folder within the repository where things should be build.'
         default: '/'
@@ -17,15 +22,28 @@ on:
         default: 'stable'
         required: false
         type: string
-      runs-on:
-        description: 'Define the type of machine to run the job on'
-        type: string
+      build_image_no_registry:
+        description: 'If you want to build image without registry.'
+        default: '--build_image_no_registry'
         required: false
-        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+        type: string
+      registry:
+        description: 'Registry where should be built images stored'
+        default: 'harbor.bratislava.sk'
+        required: false
+        type: string
+      username:
+        description: 'Docker username'
+        default: 'robot$github_actions'
+        required: false
+        type: string
 
     secrets:
       sentry-token:
         description: 'Token used for sentry debugging.'
+        required: false
+      registry-pass:
+        description: 'Password for registry.'
         required: false
 
 jobs:
@@ -47,6 +65,14 @@ jobs:
 
       - name: Directory check
         run: pwd
+
+      - name: Login to Harbor
+        if: secrets.registry-pass
+        uses: docker/login-action@v3.1.0
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ inputs.username }}
+          password: ${{ secrets.registry-pass }}
 
       - name: Print pipeline summary
         run: |
