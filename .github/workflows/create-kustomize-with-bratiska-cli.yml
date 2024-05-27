@@ -33,7 +33,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.2.3"
+          echo "Pipelines version: 2.3.0"
 
       - name: Directory check
         run: pwd

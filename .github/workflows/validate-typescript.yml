@@ -30,7 +30,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.2.3"  
+          echo "Pipelines version: 2.3.0"  
 
       - uses: actions/setup-node@v4
         with:
