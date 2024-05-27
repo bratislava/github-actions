@@ -1,23 +1,42 @@
 name: Validate nest-prisma code
 on:
-  workflow_call
+  workflow_call:
+    inputs:
+      directory:
+        description: "Where typescript have to be checked"
+        type: string
+        required: false
+        default: './src'
+      node:
+        description: "Define node version"
+        type: string
+        required: false
+        default: '20'
+      level:
+        description: "Change reporter level if you need"
+        type: string
+        required: false
+        default: 'warning'
 
 jobs:
   test:
     name: Unit tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.2.2"
+          echo "Pipelines version: 2.2.4"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ inputs.node }}
 
       - run: npm ci
       - run: cp .env.example .env
@@ -29,6 +48,9 @@ jobs:
   lint:
     name: Code quality
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,7 +58,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ inputs.node }}
 
       - run: npm ci
       - run: cp .env.example .env
@@ -44,6 +66,9 @@ jobs:
 
       - name: Typescript reviewdog check
         uses: EPMatt/reviewdog-action-tsc@v1.7.0
+        # Review dog will fail when pull request has more than 300 changed files.
+        # We want that next typescript check will do its job for all files
+        continue-on-error: true
         with:
           # Change reviewdog reporter if you need
           # [github-pr-check,github-check,github-pr-review].
@@ -54,8 +79,8 @@ jobs:
           # [info,warning,error].
           # More about reviewdog reporter level at
           # https://github.com/reviewdog/reviewdog#reporters
-          level: warning
-          workdir: ./src
+          level: ${{inputs.level}}
+          workdir: ${{ inputs.directory }}
 
       - name: Typescript check
         run: npx tsc
