@@ -37,6 +37,12 @@ on:
         default: 'robot$github_actions'
         required: false
         type: string
+      tag:
+        description: 'Tag for the build image'
+        default: ''
+        required: false
+        type: string
+
     secrets:
       sentry-token:
         description: 'Token used for sentry debugging.'
@@ -105,7 +111,7 @@ jobs:
         run: bratiska-cli deploy --version
 
       - name: Running build with Bratiska-cli
-        run: bratiska-cli build_image --env=staging --build_image_no_registry ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
+        run: bratiska-cli build_image --env=staging ${{ inputs.build_image_no_registry }} ${{ inputs.tag }} ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
         continue-on-error: false
 
       - name: Print pipeline summary - image build
