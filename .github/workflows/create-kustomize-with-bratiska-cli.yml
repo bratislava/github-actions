@@ -1,0 +1,78 @@
+name: General workflow which creates kustomize using bratiska-cli.
+on:
+  workflow_call:
+    inputs:
+      directory:
+        description: 'A Folder within the repository where things should be build.'
+        default: '/'
+        required: false
+        type: string
+      debug:
+        description: 'Debug flag'
+        default: ''
+        required: false
+        type: string
+      version:
+        description: 'Bratiska-cli version'
+        default: 'stable'
+        required: false
+        type: string
+
+jobs:
+  create-kustomize-with-bratiska-cli:
+    name: Create kustomize with bratiska-cli
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pipelines Version
+        run: |
+          echo "Pipelines version: 2.3.0"
+
+      - name: Directory check
+        run: pwd
+
+      - name: Print pipeline summary
+        run: |
+          echo "### Bratiska-cli is building:" >> $GITHUB_STEP_SUMMARY
+          echo ":arrow_right: Project folder: **${{ inputs.directory }}**" >> $GITHUB_STEP_SUMMARY
+
+      - name: Install Prerequisites -  Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installing Bratiska-cli version
+        run: yarn global add bratislava/bratiska-cli#${{ inputs.version }}
+
+      - name: Running git fetch for Bratiska-cli
+        run: git fetch
+
+      - name: Print Bratiska-cli version
+        run: bratiska-cli --version
+
+      - name: Creating kustomize file with Bratiska-cli
+        if: ${{ steps.secret-check.outputs.available != 'true' }}
+        run: bratiska-cli build_kustomize --env=staging ${{ inputs.flag }} ${{ inputs.debug }} --no_image_repo_check --image=image_url_placeholder
+        continue-on-error: false
+
+      - name: Print pipeline summary - create kustomize
+        if: ${{ steps.secret-check.outputs.available != 'true' }}
+        run: |
+          echo "### Create kustomize :build:" >> $GITHUB_STEP_SUMMARY
+          echo ":partying_face: Bratiska-cli successfully created an kustomize file." >> $GITHUB_STEP_SUMMARY
+
+      - name: Print pipeline comment - kustomize build
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2.9.0
+        with:
+          header: 'Create kustomize'
+          append: true
+          message: |
+            :partying_face: Bratiska-cli successfully created an kustomize file.

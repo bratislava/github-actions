@@ -17,10 +17,33 @@ on:
         default: 'stable'
         required: false
         type: string
+      build_image_no_registry:
+        description: 'If you want to build image without registry.'
+        default: '--build_image_no_registry'
+        required: false
+        type: string
+      registry:
+        description: 'Registry where should be built images stored'
+        default: 'harbor.bratislava.sk'
+        required: false
+        type: string
+      username:
+        description: 'Docker username'
+        default: 'robot$github_actions'
+        required: false
+        type: string
+      tag:
+        description: 'Tag for the build image'
+        default: ''
+        required: false
+        type: string
 
     secrets:
       sentry-token:
         description: 'Token used for sentry debugging.'
+        required: false
+      registry-pass:
+        description: 'Password for registry.'
         required: false
 
 jobs:
@@ -38,10 +61,28 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.2.2"
+          echo "Pipelines version: 2.3.0"
 
       - name: Directory check
         run: pwd
+
+      - name: Check for Secret availability
+        id: secret-check
+        shell: bash
+        run: |
+          if [ "${{ secrets.registry-pass }}" != '' ]; then
+          echo "available=true" >> $GITHUB_OUTPUT;
+          else
+          echo "available=false" >> $GITHUB_OUTPUT;
+          fi
+
+      - name: Login to Harbor
+        if: ${{ steps.secret-check.outputs.available == 'true' }}
+        uses: docker/login-action@v3.1.0
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ inputs.username }}
+          password: ${{ secrets.registry-pass }}
 
       - name: Print pipeline summary
         run: |
@@ -62,26 +103,8 @@ jobs:
       - name: Print Bratiska-cli version
         run: bratiska-cli --version
 
-      - name: Creating kustomize file with Bratiska-cli
-        run: bratiska-cli build_kustomize --env=staging ${{ inputs.flag }} ${{ inputs.debug }} --no_image_repo_check --image=image_url_placeholder
-        continue-on-error: false
-
-      - name: Print pipeline summary - kustomize create
-        run: |
-          echo "###  Build summary :build:" >> $GITHUB_STEP_SUMMARY
-          echo ":partying_face: Bratiska-cli successfully created an kustomize file." >> $GITHUB_STEP_SUMMARY
-
-      - name: Print pipeline comment - kustomize build
-        if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          header: Build Conditions
-          append: true
-          message: |
-            :partying_face: Bratiska-cli successfully created an kustomize file.
-
       - name: Running build with Bratiska-cli
-        run: bratiska-cli build_image --env=staging --build_image_no_registry ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
+        run: bratiska-cli build_image --env=staging ${{ inputs.build_image_no_registry }} ${{ inputs.tag }} ${{ inputs.flag }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }}
         continue-on-error: false
 
       - name: Print pipeline summary - image build
