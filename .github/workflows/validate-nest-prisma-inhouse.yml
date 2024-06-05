@@ -45,6 +45,7 @@ jobs:
 
       - run: npm ci
       - run: cp .env.example .env
+        continue-on-error: true
       - run: npx prisma generate
 
       - name: Run unit tests
