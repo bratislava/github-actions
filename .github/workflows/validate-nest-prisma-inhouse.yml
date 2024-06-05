@@ -7,12 +7,12 @@ on:
         type: string
         required: false
         default: '["self-hosted", "Linux", "X64", "bratislava"]'
-      workdir:
+      directory:
         description: "Base dir where whole app is located. Used in monorepo."
         type: string
         required: false
         default: './'
-      directory:
+      typescript-directory:
         description: "Where typescript have to be checked"
         type: string
         required: false
@@ -34,7 +34,7 @@ jobs:
     runs-on: ${{fromJSON(inputs.runs-on)}}
     defaults:
       run:
-        working-directory: ${{ inputs.workdir }}
+        working-directory: ${{ inputs.directory }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
     runs-on: ${{fromJSON(inputs.runs-on)}}
     defaults:
       run:
-        working-directory: ${{ inputs.workdir }}
+        working-directory: ${{ inputs.directory }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
           # More about reviewdog reporter level at
           # https://github.com/reviewdog/reviewdog#reporters
           level: ${{inputs.level}}
-          workdir: ${{ inputs.directory }}
+          workdir: ${{ inputs.typescript-directory }}
 
       - name: Typescript check
         run: npx tsc
