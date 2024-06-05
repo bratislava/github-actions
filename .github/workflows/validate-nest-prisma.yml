@@ -2,6 +2,11 @@ name: Validate nest-prisma code
 on:
   workflow_call:
     inputs:
+      workdir:
+        description: "Base dir where whole app is located. Used in monorepo."
+        type: string
+        required: false
+        default: './'
       directory:
         description: "Where typescript have to be checked"
         type: string
@@ -24,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ inputs.directory }}
+        working-directory: ${{ inputs.workdir }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -51,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ inputs.directory }}
+        working-directory: ${{ inputs.workdir }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
