@@ -3,6 +3,11 @@ on:
   workflow_call:
     inputs:
       directory:
+        description: "Base dir where whole app is located."
+        type: string
+        required: false
+        default: './'
+      typescript-directory:
         description: "Where typescript have to be checked"
         type: string
         required: false
@@ -81,7 +86,7 @@ jobs:
           # More about reviewdog reporter level at
           # https://github.com/reviewdog/reviewdog#reporters
           level: ${{inputs.level}}
-          workdir: ${{ inputs.directory }}
+          workdir: ${{ inputs.typescript-directory }}
 
       - name: Typescript check
         run: npx tsc
