@@ -2,7 +2,12 @@ name: Validate typescript
 on:
   workflow_call:
     inputs:
-      workdir:
+      directory:
+        description: "Base dir where whole app is located."
+        type: string
+        required: false
+        default: './'
+      typescript-directory:
         description: "Where typescript have to be checked"
         type: string
         required: false
@@ -24,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ inputs.workdir }}
+        working-directory: ${{ inputs.directory }}
     steps:
       - uses: actions/checkout@v4
 
@@ -51,4 +56,4 @@ jobs:
           # More about reviewdog reporter level at
           # https://github.com/reviewdog/reviewdog#reporters
           level: ${{inputs.level}}
-          workdir: ${{inputs.workdir}}
+          workdir: ${{inputs.typescript-directory}}

@@ -3,10 +3,10 @@ on:
   workflow_call:
     inputs:
       directory:
-        description: "Base dir where whole app is located. Used in monorepo."
+        description: "Base dir where whole app is located."
         type: string
         required: false
-        default: './src'
+        default: './'
       typescript-directory:
         description: "Where typescript have to be checked"
         type: string
