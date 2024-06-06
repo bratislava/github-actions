@@ -11,7 +11,7 @@ on:
         description: "Where typescript have to be checked"
         type: string
         required: false
-        default: './next'
+        default: './'
       node:
         description: "Define node version"
         type: string
