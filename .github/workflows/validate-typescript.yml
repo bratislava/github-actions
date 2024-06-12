@@ -6,12 +6,12 @@ on:
         description: "Base dir where whole app is located."
         type: string
         required: false
-        default: './'
+        default: './next'
       typescript-directory:
         description: "Where typescript have to be checked"
         type: string
         required: false
-        default: './'
+        default: './next'
       node:
         description: "Define node version"
         type: string
