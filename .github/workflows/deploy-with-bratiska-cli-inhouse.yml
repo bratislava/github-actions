@@ -57,6 +57,11 @@ on:
         default: ''
         required: false
         type: string
+      build_arg:
+        description: 'Defining build arg for Dockerfile'
+        default: ''
+        required: false
+        type: string
 
     secrets:
       sentry-token:
@@ -149,7 +154,7 @@ jobs:
         run: bratiska-cli deploy --version
 
       - name: Running build and deploy with Bratiska-cli
-        run: bratiska-cli deploy ${{ inputs.flag }} --namespace=${{ inputs.namespace }} --sentry=${{ secrets.sentry-token }} ${{ inputs.debug }} ${{ inputs.skip_deployment_check }}
+        run: bratiska-cli deploy ${{ inputs.flag }} --namespace=${{ inputs.namespace }} --sentry=${{ secrets.sentry-token }} ${{ inputs.build_arg }} ${{ inputs.debug }} ${{ inputs.skip_deployment_check }}
         continue-on-error: false
 
       - name: Print pipeline summary
