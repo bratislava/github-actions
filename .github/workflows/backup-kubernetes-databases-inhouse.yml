@@ -40,6 +40,12 @@ on:
         default: 1
         required: false
         type: number
+      field-selector:
+        description: 'To better filter out the results, we have field-selector'
+        default: ''
+        required: false
+        type: string
+
     secrets:
       service-account:
         description: 'Kubernetes service account'
@@ -112,7 +118,7 @@ jobs:
           
           # we have different selects for postgress apps and for wordpress
           if [[ "$backup" == "shared-wordpress" ]]; then label="app.kubernetes.io/name=wordpress"; else label="service=database"; fi
-          preselect=$(kubectl get pod --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify --request-timeout=5s --selector "$label" --output jsonpath='{.items..metadata.name}')
+          preselect=$(kubectl get pod --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify --request-timeout=5s --selector "$label" ${{ inputs.field-selector }} --output jsonpath='{.items..metadata.name}')
           
           # Option to process just part of the pods by providing two variables
           # ratio - split to results to X parts
@@ -153,6 +159,14 @@ jobs:
           echo "Starting backup loop"
           for pod in ${select};
           do          
+          
+            # Check if the pod is in the comma-separated list of items to skip
+            if [[ "${{ inputs.skip }}" == *"$pod"* ]]; then
+            echo "Skipping pod: $pod"
+            continue
+            fi
+          
+          
             # determine service container
             container=""
             if [[ "$backup" == "shared-wordpress" ]]; then
