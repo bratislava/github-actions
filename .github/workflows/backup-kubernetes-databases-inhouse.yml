@@ -100,7 +100,7 @@ jobs:
 
       - name: Run database backup
         id: dbbackup
-        run: |          
+        run: |
           echo "Starting..."
           backup="${{ inputs.backup }}"
           echo "We are going to backup: ${backup}"
