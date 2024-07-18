@@ -123,12 +123,17 @@ jobs:
           
           # count number of pods
           count=$(echo $preselect | wc -l)
+          echo "Number of all pods: ${count}"
           
           # split results based on ratio
           split=$((count / ${{ inputs.ratio }}))
+          echo "Split: ${split}"
+          echo "Part: ${{ inputs.part }}"
           
           # skips the first X of splits, then display the next split
           select=$(echo $preselect | tail -n +$(( (${{ inputs.part }} - 1) * split + 1)) | head -n $split) 
+          partcount=$(echo select | wc -l)
+          echo "Number of pods in this part: ${partcount}"
           
           # for wordpress we need to check if maria db is running
           if [[ "$backup" == "shared-wordpress" ]]; then 
@@ -145,6 +150,7 @@ jobs:
           mkdir "backup"
           
           # loop in pods which are going to be backuped
+          echo "Starting backup loop"
           for pod in ${select};
           do          
             # determine service container
