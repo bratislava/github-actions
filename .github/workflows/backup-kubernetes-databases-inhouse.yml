@@ -101,6 +101,11 @@ jobs:
       - name: Run database backup
         id: dbbackup
         run: |
+          if [[ ${{ inputs.part }} -gt ${{ inputs.ratio }} ]]; then
+             echo "Error: part (${{ inputs.part }}) is bigger then ratio (${{ inputs.ratio }})";
+             exit 1;
+          fi
+          
           echo "Starting..."
           backup="${{ inputs.backup }}"
           echo "We are going to backup: ${backup}"
