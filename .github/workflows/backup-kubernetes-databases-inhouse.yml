@@ -132,7 +132,7 @@ jobs:
           
           # skips the first X of splits, then display the next split
           select=$(echo $preselect | tr ' ' '\n' | tail -n +$(( (${{ inputs.part }} - 1) * split + 1)) | head -n $split)
-          partcount=$(echo select | wc -w)
+          partcount=$(echo select | wc -l)
           echo "Number of pods in this part: ${partcount}"
           
           # for wordpress we need to check if maria db is running
