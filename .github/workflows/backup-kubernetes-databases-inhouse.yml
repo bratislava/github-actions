@@ -127,11 +127,11 @@ jobs:
           
           # split results based on ratio
           split=$((count / ${{ inputs.ratio }}))
-          echo "Split: ${split}"
+          echo "Numbers of pods per split: ${split}"
           echo "Part: ${{ inputs.part }}"
           
           # skips the first X of splits, then display the next split
-          select=$(echo $preselect | tail -n +$(( (${{ inputs.part }} - 1) * split + 1)) | head -n $split) 
+          select=$(echo $preselect | tr ' ' '\n' | tail -n +$(( (${{ inputs.part }} - 1) * split + 1)) | head -n $split)
           partcount=$(echo select | wc -w)
           echo "Number of pods in this part: ${partcount}"
           
