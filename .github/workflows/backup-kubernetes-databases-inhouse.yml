@@ -152,7 +152,6 @@ jobs:
           
           # select pods based on chunksize and skip     
           select=$(echo $preselect | tr ' ' '\n' | tail -n +$((skip + 1)) | head -n $chunk)
-          echo "These pods will be processed: ${select}"
           
           # for wordpress we need to check if maria db is running
           if [[ "$backup" == "shared-wordpress" ]]; then 
