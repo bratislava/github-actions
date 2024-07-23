@@ -107,6 +107,11 @@ jobs:
       - name: Run database backup
         id: dbbackup
         run: |
+          if [[ ${{ inputs.part }} -le 0 || ${{ inputs.ratio }} -le 0 ]]; then
+            echo "Error: Both part and ratio must be greater than 0";
+            exit 1;
+          fi
+          
           if [[ ${{ inputs.part }} -gt ${{ inputs.ratio }} ]]; then
              echo "Error: part (${{ inputs.part }}) is bigger then ratio (${{ inputs.ratio }})";
              exit 1;
@@ -130,14 +135,25 @@ jobs:
           # count number of pods
           count=$(echo $preselect | wc -w)
           echo "Number of all pods: ${count}"
+             
+          # which part from splits to display     
+          part=${{ inputs.part }}    
+          echo "Part: ${part}}"     
+               
+          # ratio for split     
+          ratio=${{ inputs.ratio }}
+          echo "Ratio: ${ratio}"
           
-          # split results based on ratio
-          split=$((count / ${{ inputs.ratio }}))
-          echo "Numbers of pods per split: ${split}"
-          echo "Part: ${{ inputs.part }}"
+          # calculate chunk size
+          chunk=$(( (count + ratio - 1) / ratio ))
+          echo "Chunk: ${chunk}"
+         
+          # Calculate how many pods to skip based on chunk size
+          skip=$(( (part - 1) * chunk ))
+          echo "Skip: ${skip}"
           
-          # skips the first X of splits, then display the next split
-          select=$(echo $preselect | tr ' ' '\n' | tail -n +$(( (${{ inputs.part }} - 1) * split + 1)) | head -n $split)
+          # select pods based on chunksize and skip     
+          select=$(echo $preselect | tr ' ' '\n' | tail -n +$((skip + 1)) | head -n $chunk)
           
           # for wordpress we need to check if maria db is running
           if [[ "$backup" == "shared-wordpress" ]]; then 
@@ -157,14 +173,6 @@ jobs:
           echo "Starting backup loop"
           for pod in ${select};
           do          
-          
-            # Check if the pod is in the comma-separated list of items to skip
-            if [[ "${{ inputs.skip }}" == *"$pod"* ]]; then
-            echo "Skipping pod: $pod"
-            continue
-            fi
-          
-          
             # determine service container
             container=""
             if [[ "$backup" == "shared-wordpress" ]]; then
