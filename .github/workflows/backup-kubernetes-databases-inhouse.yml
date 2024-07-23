@@ -137,8 +137,7 @@ jobs:
           echo "Number of all pods: ${count}"
              
           # which part from splits to display     
-          part=${{ inputs.part }}    
-          echo "Part: ${part}"     
+          echo "Part: ${{ inputs.part }}"     
                
           # ratio for split     
           echo "Ratio: ${{ inputs.ratio }}"
@@ -148,11 +147,12 @@ jobs:
           echo "Chunk: ${chunk}"
          
           # Calculate how many pods to skip based on chunk size
-          skip=$(( (part - 1) * chunk ))
+          skip=$(( (${{ inputs.part }} - 1) * chunk ))
           echo "Skip: ${skip}"
           
           # select pods based on chunksize and skip     
-          select=$(echo "$preselect" | tail -n +$((skip + 1)) | head -n $chunk)
+          select=$(echo $preselect | tr ' ' '\n' | tail -n +$((skip + 1)) | head -n $chunk)
+          echo "These pods will be processed: ${select}"
           
           # for wordpress we need to check if maria db is running
           if [[ "$backup" == "shared-wordpress" ]]; then 
