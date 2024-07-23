@@ -30,6 +30,22 @@ on:
         default: 'https://tkg.dev.bratislava.sk'
         required: true
         type: string
+      ratio:
+        description: 'Ratio for splitting number od pods for a given processing'
+        default: 1
+        required: false
+        type: number
+      part:
+        description: 'Which part of split pods should be processed based on the ratio.'
+        default: 1
+        required: false
+        type: number
+      field-selector:
+        description: 'To better filter out the results, we have field-selector'
+        default: ''
+        required: false
+        type: string
+
     secrets:
       service-account:
         description: 'Kubernetes service account'
@@ -68,7 +84,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.0"
+          echo "Pipelines version: 2.4.0"
 
       - name: Directory check
         run: pwd
@@ -90,14 +106,52 @@ jobs:
 
       - name: Run database backup
         id: dbbackup
-        run: |    
+        run: |
+          if [[ ${{ inputs.part }} -le 0 || ${{ inputs.ratio }} -le 0 ]]; then
+            echo "Error: Both part and ratio must be greater than 0";
+            exit 1;
+          fi
+          
+          if [[ ${{ inputs.part }} -gt ${{ inputs.ratio }} ]]; then
+             echo "Error: part (${{ inputs.part }}) is bigger then ratio (${{ inputs.ratio }})";
+             exit 1;
+          fi
+          
           echo "Starting..."
           backup="${{ inputs.backup }}"
           echo "We are going to backup: ${backup}"
           
           # we have different selects for postgress apps and for wordpress
           if [[ "$backup" == "shared-wordpress" ]]; then label="app.kubernetes.io/name=wordpress"; else label="service=database"; fi
-          select=$(kubectl get pod --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify --request-timeout=5s --selector "$label" --output jsonpath='{.items..metadata.name}')
+          preselect=$(kubectl get pod --namespace "${{ inputs.namespace }}" --insecure-skip-tls-verify --request-timeout=5s --selector "$label" ${{ inputs.field-selector }} --output jsonpath='{.items..metadata.name}')
+          
+          # Option to process just part of the pods by providing two variables
+          # ratio - split to results to X parts
+          # part - which part should be displayed
+          #
+          # Like to process first half of results, you set ratio to 2 and part to 1. To proceess second half of that set part to 2
+          # If you dont want to split the results, set ratio to 1 and part to 1
+          
+          # count number of pods
+          count=$(echo $preselect | wc -w)
+          echo "Number of all pods: ${count}"
+             
+          # which part from splits to display     
+          echo "Part: ${{ inputs.part }}"     
+               
+          # ratio for split     
+          echo "Ratio: ${{ inputs.ratio }}"
+          
+          # calculate chunk size
+          chunk=$(( (count + ${{ inputs.ratio }} - 1) / ${{ inputs.ratio }} ))
+          echo "Chunk: ${chunk}"
+         
+          # Calculate how many pods to skip based on chunk size
+          skip=$(( (${{ inputs.part }} - 1) * chunk ))
+          echo "Skip: ${skip}"
+          
+          # select pods based on chunksize and skip     
+          select=$(echo $preselect | tr ' ' '\n' | tail -n +$((skip + 1)) | head -n $chunk)
           
           # for wordpress we need to check if maria db is running
           if [[ "$backup" == "shared-wordpress" ]]; then 
@@ -114,6 +168,7 @@ jobs:
           mkdir "backup"
           
           # loop in pods which are going to be backuped
+          echo "Starting backup loop"
           for pod in ${select};
           do          
             # determine service container
