@@ -71,6 +71,14 @@ jobs:
       - name: Directory check
         run: pwd
 
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ hashFiles('**/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
       - name: Check for Secret availability
         id: secret-check
         shell: bash
