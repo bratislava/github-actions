@@ -42,6 +42,11 @@ on:
         default: ''
         required: false
         type: string
+      fetch-depth:
+        description: 'Defining fetch-depth'
+        default: 0
+        required: false
+        type: number
 
     secrets:
       sentry-token:
@@ -62,11 +67,11 @@ jobs:
       - name: Checking out
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ inputs.fetch-depth }}
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.0"
+          echo "Pipelines version: 2.3.1"
 
       - name: Directory check
         run: pwd
