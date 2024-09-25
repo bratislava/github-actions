@@ -97,7 +97,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.1"
+          echo "Pipelines version: 2.3.2"
 
       - name: Directory check
         run: pwd
@@ -114,13 +114,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Installing Bratiska-cli stable
+      - name: Installing Bratiska-cli ${{ inputs.version }}
         run: |
           yarn global add bratislava/bratiska-cli#${{ inputs.version }}
           echo "~/.yarn/bin" >> $GITHUB_PATH
-
-      - name: Running git fetch for Bratiska-cli
-        run: git fetch
 
       - name: Kubectl tool installer
         uses: Azure/setup-kubectl@v4.0.0
