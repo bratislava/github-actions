@@ -76,7 +76,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.1"
+          echo "Pipelines version: 2.3.2"
 
       - name: Directory check
         run: pwd
@@ -103,9 +103,6 @@ jobs:
         run: |
           yarn global add bratislava/bratiska-cli#${{ inputs.version }}
           echo "~/.yarn/bin" >> $GITHUB_PATH
-
-      - name: Running git fetch for Bratiska-cli
-        run: git fetch
 
       - name: Print Bratiska-cli version
         run: bratiska-cli deploy --version
