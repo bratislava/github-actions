@@ -38,7 +38,7 @@ on:
         required: true
         type: string
       username:
-        description: 'Docker username'
+        description: 'Harbor username'
         default: 'robot$github_actions'
         required: false
         type: string
