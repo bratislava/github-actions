@@ -33,8 +33,13 @@ on:
         required: false
         type: string
       username:
-        description: 'Docker username'
+        description: 'Harbor username'
         default: 'robot$github_actions'
+        required: false
+        type: string
+      docker-username:
+        description: 'Docker username'
+        default: 'bratislava'
         required: false
         type: string
       tag:
@@ -60,6 +65,9 @@ on:
       registry-pass:
         description: 'Password for registry.'
         required: false
+      docker-pass:
+        description: 'Password for docker registry.'
+        required: false
 
 jobs:
   build-with-bratiska-cli:
@@ -76,18 +84,45 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.2"
+          echo "Pipelines version: 2.4"
 
       - name: Directory check
         run: pwd
 
+      - name: Check for Harbor secret availability
+        id: harbor-check
+        shell: bash
+        run: |
+          if [ "${{ secrets.registry-pass }}" != '' ]; then
+          echo "available=true" >> $GITHUB_OUTPUT;
+          else
+          echo "available=false" >> $GITHUB_OUTPUT;
+          fi
+
       - name: Login to Harbor
-        if: ${{ inputs.build_image_no_registry == '' }}
+        if: ${{ steps.harbor-check.outputs.available == 'true' }}
         uses: docker/login-action@v3.1.0
         with:
           registry: ${{ inputs.registry }}
           username: ${{ inputs.username }}
           password: ${{ secrets.registry-pass }}
+
+      - name: Check for Docker secret availability
+        id: docker-check
+        shell: bash
+        run: |
+          if [ "${{ secrets.docker-pass }}" != '' ]; then
+          echo "available=true" >> $GITHUB_OUTPUT;
+          else
+          echo "available=false" >> $GITHUB_OUTPUT;
+          fi
+
+      - name: Login to Docker
+        if: ${{ steps.docker-check.outputs.available == 'true' }}
+        uses: docker/login-action@v3.1.0
+        with:
+          username: ${{ inputs.docker-username }}
+          password: ${{ secrets.docker-pass }}
 
       - name: Print pipeline summary
         run: |

@@ -42,6 +42,11 @@ on:
         default: 'robot$github_actions'
         required: false
         type: string
+      docker-username:
+        description: 'Docker username'
+        default: 'bratislava'
+        required: false
+        type: string
       version:
         description: 'Bratiska-cli version'
         default: 'stable'
@@ -67,15 +72,16 @@ on:
       sentry-token:
         description: 'Token used for sentry debugging.'
         required: false
-
       registry-pass:
         description: 'Password for registry where docker is uploading images'
         required: true
-        
       service-account:
         # kubectl get secret default-token-7kvjs -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
         description: 'Kubernetes service account'
         required: true
+      docker-pass:
+        description: 'Password for docker registry.'
+        required: false
 
 jobs:
   deploy-with-bratiska-cli:
@@ -92,7 +98,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.2"
+          echo "Pipelines version: 2.4.0"
 
       - name: Directory check
         run: pwd
@@ -134,6 +140,23 @@ jobs:
           registry: ${{ inputs.registry }}
           username: ${{ inputs.username }}
           password: ${{ secrets.registry-pass }}
+
+      - name: Check for Docker secret availability
+        id: docker-check
+        shell: bash
+        run: |
+          if [ "${{ secrets.docker-pass }}" != '' ]; then
+          echo "available=true" >> $GITHUB_OUTPUT;
+          else
+          echo "available=false" >> $GITHUB_OUTPUT;
+          fi
+
+      - name: Login to Docker
+        if: ${{ steps.docker-check.outputs.available == 'true' }}
+        uses: docker/login-action@v3.1.0
+        with:
+          username: ${{ inputs.docker-username }}
+          password: ${{ secrets.docker-pass }}
 
       - name: Get current branch name
         if: github.event_name != 'pull_request'
