@@ -67,6 +67,11 @@ on:
         default: 0
         required: false
         type: number
+      slack-channel:
+        description: 'Channel for slack notification '
+        default: "alerts-pipelines"
+        required: false
+        type: string
 
     secrets:
       sentry-token:
@@ -81,6 +86,9 @@ on:
         required: true
       docker-pass:
         description: 'Password for docker registry.'
+        required: false
+      slack-token:
+        description: 'Slackbot token'
         required: false
 
 jobs:
@@ -179,3 +187,21 @@ jobs:
         run: |
           echo "###  Deployment summary :ship:" >> $GITHUB_STEP_SUMMARY
           echo ":partying_face: Bratiska-cli successfully deployed to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check for Slack secret availability
+        id: slack-check
+        shell: bash
+        run: |
+          if [ "${{ secrets.slack-token }}" != '' ]; then
+          echo "available=true" >> $GITHUB_OUTPUT;
+          else
+          echo "available=false" >> $GITHUB_OUTPUT;
+          fi
+
+      - name: Slack Report
+        if: ${{ always() && steps.slack-check.outputs.available == 'true' }}
+        uses: kpritam/slack-job-status-action@v1
+        with:
+          job-status: ${{ job.status }}
+          slack-bot-token: ${{ secrets.slack-token }}
+          channel: ${{ inputs.slack-channel }}
