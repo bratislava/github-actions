@@ -190,6 +190,7 @@ jobs:
 
       - name: Check for Slack secret availability
         id: slack-check
+        if: always()
         shell: bash
         run: |
           if [ "${{ secrets.slack-token }}" != '' ]; then
