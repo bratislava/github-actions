@@ -19,20 +19,3 @@ runs:
         cat /proc/sys/net/ipv6/conf/all/disable_ipv6
         cat /proc/sys/net/ipv6/conf/default/disable_ipv6
       working-directory: ${{ inputs.project-root }}
-
-    - name: Check IPv6 Status
-      shell: bash
-      run: |
-        echo "=== IPv6 Kernel Parameters ==="
-        cat /proc/sys/net/ipv6/conf/all/disable_ipv6
-        cat /proc/sys/net/ipv6/conf/default/disable_ipv6
-        cat /proc/sys/net/ipv6/conf/lo/disable_ipv6
-        
-        echo -e "\n=== Network Interfaces IPv6 Status ==="
-        ip -6 addr
-        
-        echo -e "\n=== Active Internet Connections (including servers) ==="
-        netstat -tuln | grep -i ":::"
-        
-        echo -e "\n=== Testing IPv6 Connectivity ==="
-        ping6 -c 1 google.com || echo "IPv6 ping failed - IPv6 likely disabled"
