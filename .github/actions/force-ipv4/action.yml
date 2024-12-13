@@ -5,7 +5,11 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Run prefer IPv4 script
+    - name: Make script executable
+      shell: bash
+      run: chmod +x ${{ github.action_path }}/force-ipv4.sh
+
+    - name: Run IPv4 script
       shell: bash
       run: ${{ github.action_path }}/force-ipv4.sh
       working-directory: ${{ inputs.project-root }}
