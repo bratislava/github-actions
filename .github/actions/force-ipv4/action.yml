@@ -1,21 +1,54 @@
-inputs:
-  project-root:
-    required: false
-    default: '.'
+name: 'Force IPv4 Routing'
+description: 'Disable IPv6 and force all traffic through IPv4'
+
 runs:
   using: composite
   steps:
-    - name: Disable IPv6
+    - name: Configure Network
       shell: bash
       run: |
-        echo "Disabling IPv6..."
-        # Use tee instead of sysctl
+        echo "=== Disabling IPv6 ==="
+        # Disable IPv6 system-wide
         echo 1 | sudo tee /proc/sys/net/ipv6/conf/all/disable_ipv6
         echo 1 | sudo tee /proc/sys/net/ipv6/conf/default/disable_ipv6
         echo 1 | sudo tee /proc/sys/net/ipv6/conf/lo/disable_ipv6
         
-        # Verify IPv6 status
-        echo "Current IPv6 status:"
+        # Add IPv6 disable to sysctl.conf for persistence
+        echo 'net.ipv6.conf.all.disable_ipv6 = 1' | sudo tee -a /etc/sysctl.conf
+        echo 'net.ipv6.conf.default.disable_ipv6 = 1' | sudo tee -a /etc/sysctl.conf
+        echo 'net.ipv6.conf.lo.disable_ipv6 = 1' | sudo tee -a /etc/sysctl.conf
+        
+        # Force IPv4 for applications
+        echo "=== Configuring Applications for IPv4 ==="
+        
+        # Configure wget
+        echo 'prefer-family = IPv4' | sudo tee -a /etc/wgetrc
+        
+        # Configure curl
+        echo 'ip_resolve=IPv4' | sudo tee -a ~/.curlrc
+        
+        # Configure APT
+        echo 'Acquire::ForceIPv4 "true";' | sudo tee /etc/apt/apt.conf.d/99force-ipv4
+        
+        # Configure Git
+        git config --global url."https://".insteadOf git://
+        
+        # Add IPv4 precedence in gai.conf
+        echo 'precedence ::ffff:0:0/96  100' | sudo tee -a /etc/gai.conf
+        
+        # Verify Configuration
+        echo -e "\n=== Verification ==="
+        echo "IPv6 Status (should show 1):"
         cat /proc/sys/net/ipv6/conf/all/disable_ipv6
-        cat /proc/sys/net/ipv6/conf/default/disable_ipv6
-      working-directory: ${{ inputs.project-root }}
+        
+        echo -e "\nNetwork Interfaces (should not show IPv6):"
+        ip addr | grep inet
+        
+        echo -e "\nActive Internet connections (should not show IPv6):"
+        netstat -tuln | grep LISTEN
+        
+        echo -e "\nTesting IPv4 connectivity:"
+        curl -4 ifconfig.me
+        
+        echo -e "\nDNS Resolution (should use IPv4):"
+        getent ahosts google.com
