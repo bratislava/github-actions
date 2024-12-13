@@ -7,5 +7,5 @@ runs:
   steps:
     - name: Run prefer IPv4 script
       shell: bash
-      run: force-ipv4.sh
+      run: ./force-ipv4.sh
       working-directory: ${{ inputs.project-root }}
