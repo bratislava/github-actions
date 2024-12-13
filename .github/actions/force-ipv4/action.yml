@@ -11,5 +11,5 @@ runs:
 
     - name: Run IPv4 script
       shell: bash
-      run: sudo ${{ github.action_path }}/force-ipv4.sh
+      run: ${{ github.action_path }}/force-ipv4.sh
       working-directory: ${{ inputs.project-root }}
