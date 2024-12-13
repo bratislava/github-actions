@@ -5,11 +5,18 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Make script executable
+    - name: Disable IPv6
       shell: bash
-      run: chmod +x ${{ github.action_path }}/force-ipv4.sh
-
-    - name: Run IPv4 script
-      shell: bash
-      run: ${{ github.action_path }}/force-ipv4.sh
+      run: |
+        # GitHub Actions runners typically have sudo access without password
+        echo "Disabling IPv6..."
+        # Use tee instead of sysctl
+        echo 1 | sudo tee /proc/sys/net/ipv6/conf/all/disable_ipv6
+        echo 1 | sudo tee /proc/sys/net/ipv6/conf/default/disable_ipv6
+        echo 1 | sudo tee /proc/sys/net/ipv6/conf/lo/disable_ipv6
+        
+        # Verify IPv6 status
+        echo "Current IPv6 status:"
+        cat /proc/sys/net/ipv6/conf/all/disable_ipv6
+        cat /proc/sys/net/ipv6/conf/default/disable_ipv6
       working-directory: ${{ inputs.project-root }}
