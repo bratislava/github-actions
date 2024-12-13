@@ -40,15 +40,3 @@ runs:
         echo -e "\n=== Verification ==="
         echo "IPv6 Status (should show 1):"
         cat /proc/sys/net/ipv6/conf/all/disable_ipv6
-        
-        echo -e "\nNetwork Interfaces (should not show IPv6):"
-        ip addr | grep inet
-        
-        echo -e "\nActive Internet connections (should not show IPv6):"
-        netstat -tuln | grep LISTEN
-        
-        echo -e "\nTesting IPv4 connectivity:"
-        curl -4 ifconfig.me
-        
-        echo -e "\nDNS Resolution (should use IPv4):"
-        getent ahosts google.com
