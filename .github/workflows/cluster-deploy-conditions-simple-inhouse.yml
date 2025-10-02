@@ -20,7 +20,7 @@ on:
 jobs:
   conditions:
     name: Checking deployment conditions
-    runs-on: ${{fromJSON(inputs.runs-on)}}
+    runs-on: ${{inputs.runs-on}}
     env:
       COUNT: 0
     outputs:

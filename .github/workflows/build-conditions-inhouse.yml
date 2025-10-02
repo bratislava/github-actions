@@ -17,7 +17,7 @@ on:
 jobs:
   changes:
     name: Checking for directory changes in repository
-    runs-on: ${{fromJSON(inputs.runs-on)}}
+    runs-on: ${{inputs.runs-on}}
     outputs:
       strapi: ${{ steps.filter.outputs.strapi }}
       next: ${{ steps.filter.outputs.next }}
@@ -42,7 +42,7 @@ jobs:
   conditions:
     name: Checking build conditions
     needs: changes
-    runs-on: ${{fromJSON(inputs.runs-on)}}
+    runs-on: ${{inputs.runs-on}}
     env:
       COUNT: 0
     outputs:

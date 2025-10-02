@@ -99,7 +99,7 @@ on:
 jobs:
   deploy-with-bratiska-cli:
     name: Build and deploy with bratiska-cli
-    runs-on: ${{fromJSON(inputs.runs-on)}}
+    runs-on: ${{inputs.runs-on}}
     defaults:
       run:
         working-directory: ${{ inputs.directory }}

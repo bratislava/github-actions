@@ -75,7 +75,7 @@ on:
 jobs:
   backup:
     name: Backup databases
-    runs-on: ${{fromJSON(inputs.runs-on)}}
+    runs-on: ${{inputs.runs-on}}
     steps:
       - name: Checking out
         uses: actions/checkout@v4
