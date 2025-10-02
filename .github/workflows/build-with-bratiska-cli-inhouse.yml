@@ -3,78 +3,78 @@ on:
   workflow_call:
     inputs:
       runs-on:
-        description: 'Define the type of machine to run the job on'
+        description: "Define the type of machine to run the job on"
         type: string
         required: false
-        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+        default: "bratislava"
       directory:
-        description: 'A Folder within the repository where things should be build.'
-        default: '/'
+        description: "A Folder within the repository where things should be build."
+        default: "/"
         required: false
         type: string
       debug:
-        description: 'Debug flag'
-        default: ''
+        description: "Debug flag"
+        default: ""
         required: false
         type: string
       version:
-        description: 'Bratiska-cli version'
-        default: 'stable'
+        description: "Bratiska-cli version"
+        default: "stable"
         required: false
         type: string
       build_image_no_registry:
-        description: 'If you want to build image without registry.'
-        default: '--build_image_no_registry'
+        description: "If you want to build image without registry."
+        default: "--build_image_no_registry"
         required: false
         type: string
       registry:
-        description: 'Registry where should be built images stored'
-        default: 'harbor.bratislava.sk'
+        description: "Registry where should be built images stored"
+        default: "harbor.bratislava.sk"
         required: false
         type: string
       username:
-        description: 'Harbor username'
-        default: 'robot$github_actions'
+        description: "Harbor username"
+        default: "robot$github_actions"
         required: false
         type: string
       docker-username:
-        description: 'Docker username'
-        default: 'bratislava'
+        description: "Docker username"
+        default: "bratislava"
         required: false
         type: string
       tag:
-        description: 'Tag for the build image'
-        default: ''
+        description: "Tag for the build image"
+        default: ""
         required: false
         type: string
       build_arg:
-        description: 'Defining build arg for Dockerfile'
-        default: ''
+        description: "Defining build arg for Dockerfile"
+        default: ""
         required: false
         type: string
       fetch-depth:
-        description: 'Defining fetch-depth'
+        description: "Defining fetch-depth"
         default: 0
         required: false
         type: number
       slack-channel:
-        description: 'Channel for slack notification '
+        description: "Channel for slack notification "
         default: "alerts-pipelines"
         required: false
         type: string
 
     secrets:
       sentry-token:
-        description: 'Token used for sentry debugging.'
+        description: "Token used for sentry debugging."
         required: false
       registry-pass:
-        description: 'Password for registry.'
+        description: "Password for registry."
         required: false
       docker-pass:
-        description: 'Password for docker registry.'
+        description: "Password for docker registry."
         required: false
       slack-token:
-        description: 'Slackbot token'
+        description: "Slackbot token"
         required: false
 
 jobs:
@@ -140,7 +140,7 @@ jobs:
       - name: Install Prerequisites - Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Installing Bratiska-cli version
         run: |

@@ -3,10 +3,10 @@ on:
   workflow_call:
     inputs:
       runs-on:
-        description: 'Define the type of machine to run the job on'
+        description: "Define the type of machine to run the job on"
         type: string
         required: false
-        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+        default: "bratislava"
     outputs:
       dev:
         description: "Returns true if dev-strapi and dev-next can be deployed"
@@ -30,7 +30,7 @@ jobs:
     steps:
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.0"  
+          echo "Pipelines version: 2.3.0"
 
       - name: Print pipeline summary
         run: |

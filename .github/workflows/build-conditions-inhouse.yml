@@ -3,10 +3,10 @@ on:
   workflow_call:
     inputs:
       runs-on:
-        description: 'Define the type of machine to run the job on'
+        description: "Define the type of machine to run the job on"
         type: string
         required: false
-        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+        default: "bratislava"
     outputs:
       strapi:
         description: "Returns true if strapi can be built"
@@ -49,7 +49,6 @@ jobs:
       strapi: ${{ steps.strapi.outputs.condition }}
       next: ${{ steps.next.outputs.condition }}
     steps:
-
       - name: Print pipeline comment
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2.9.0

@@ -6,27 +6,27 @@ on:
         description: "Define the type of machine to run the job on"
         type: string
         required: false
-        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+        default: "bratislava"
       directory:
         description: "Base dir where whole app is located."
         type: string
         required: false
-        default: './next'
+        default: "./next"
       typescript-directory:
         description: "Where typescript have to be checked"
         type: string
         required: false
-        default: './next'
+        default: "./next"
       node:
         description: "Define node version"
         type: string
         required: false
-        default: '20'
+        default: "20"
       level:
         description: "Change reporter level if you need"
         type: string
         required: false
-        default: 'warning'
+        default: "warning"
 
 jobs:
   test:
@@ -40,7 +40,7 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.0"  
+          echo "Pipelines version: 2.3.0"
 
       - uses: actions/setup-node@v4
         with:
