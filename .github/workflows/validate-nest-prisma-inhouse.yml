@@ -3,35 +3,35 @@ on:
   workflow_call:
     inputs:
       runs-on:
-        description: 'Define the type of machine to run the job on'
+        description: "Define the type of machine to run the job on"
         type: string
         required: false
-        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+        default: "bratislava"
       directory:
         description: "Base dir where whole app is located."
         type: string
         required: false
-        default: './'
+        default: "./"
       typescript-directory:
         description: "Where typescript have to be checked"
         type: string
         required: false
-        default: './src'
+        default: "./src"
       node:
         description: "Define node version"
         type: string
         required: false
-        default: '20'
+        default: "20"
       level:
         description: "Change reporter level if you need"
         type: string
         required: false
-        default: 'warning'
+        default: "warning"
 
 jobs:
   test:
     name: Unit tests
-    runs-on: ${{fromJSON(inputs.runs-on)}}
+    runs-on: ${{inputs.runs-on}}
     defaults:
       run:
         working-directory: ${{ inputs.directory }}
@@ -46,7 +46,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - run: npm ci
       - run: cp .env.example .env
@@ -58,7 +58,7 @@ jobs:
 
   lint:
     name: Code quality
-    runs-on: ${{fromJSON(inputs.runs-on)}}
+    runs-on: ${{inputs.runs-on}}
     defaults:
       run:
         working-directory: ${{ inputs.directory }}
@@ -69,7 +69,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - run: npm ci
       - run: cp .env.example .env

@@ -3,10 +3,10 @@ on:
   workflow_call:
     inputs:
       runs-on:
-        description: 'Define the type of machine to run the job on'
+        description: "Define the type of machine to run the job on"
         type: string
         required: false
-        default: '["self-hosted", "Linux", "X64", "bratislava"]'
+        default: "bratislava"
     outputs:
       dev:
         description: "Returns true if dev-strapi and dev-next can be deployed"
@@ -38,7 +38,7 @@ on:
 jobs:
   changes:
     name: Checking for directory changes in repository
-    runs-on: ${{fromJSON(inputs.runs-on)}}
+    runs-on: ${{inputs.runs-on}}
     outputs:
       strapi: ${{ steps.filter.outputs.strapi }}
       next: ${{ steps.filter.outputs.next }}
@@ -63,7 +63,7 @@ jobs:
   conditions:
     name: Checking deployment conditions
     needs: changes
-    runs-on: ${{fromJSON(inputs.runs-on)}}
+    runs-on: ${{inputs.runs-on}}
     env:
       COUNT: 0
     outputs:
