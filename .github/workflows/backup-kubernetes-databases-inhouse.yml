@@ -257,7 +257,7 @@ jobs:
 
       - name: Upload folder to bucket
         if: inputs.aws
-        uses: a-sync/s3-uploader@master
+        uses: a-sync/s3-uploader@1b1020511c685aeb5be20f23190d2d1b63ab19a6 # v2.0.1
         with:
           args: --recursive --exclude "*.log"
         env:
