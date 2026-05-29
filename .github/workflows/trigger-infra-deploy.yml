@@ -1,0 +1,114 @@
+# Reusable workflow: dispatch a deploy in the infrastructure-deployment-configuration
+# repo and wait for it to finish.
+#
+# Required secret on the CALLING repository:
+#   INFRA_DEPLOY_PAT - a PAT with rights to dispatch and read workflow runs in
+#                      bratislava/infrastructure-deployment-configuration.
+# This workflow reads the secret directly via `secrets.INFRA_DEPLOY_PAT`, so the
+# caller must make it available, e.g. by calling with `secrets: inherit` (or by
+# explicitly forwarding the secret). The secret must exist on the caller repo.
+name: Trigger Infrastructure Deploy (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      cluster:
+        description: "Target cluster (development, staging, production, aws)"
+        required: true
+        type: string
+      app:
+        description: >-
+          Application identifier passed to the deploy workflow as app_name.
+          Free-form, e.g. "parking_pricing_api" or
+          "konto.bratislava.sk/nest_city_account".
+        required: true
+        type: string
+      dispatch_ref:
+        description: "Git ref in the target repo to dispatch the deploy workflow on"
+        required: false
+        type: string
+        default: master
+
+env:
+  TARGET_REPO: bratislava/infrastructure-deployment-configuration
+  DEPLOY_WORKFLOW_FILE: deploy.yml
+
+jobs:
+  trigger-deploy:
+    name: Deploy to ${{ inputs.cluster }}
+    runs-on: bratislava
+    environment: ${{ inputs.cluster }}
+    steps:
+      - name: Trigger infrastructure deployment
+        env:
+          GH_TOKEN: ${{ secrets.INFRA_DEPLOY_PAT }}
+        run: |
+          echo "Dispatching deploy for cluster=${{ inputs.cluster }} app=${{ inputs.app }}"
+
+          RESPONSE=$(curl --fail --request POST \
+            --header "Accept: application/vnd.github.v3+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --data @- \
+            "https://api.github.com/repos/${{ env.TARGET_REPO }}/actions/workflows/${{ env.DEPLOY_WORKFLOW_FILE }}/dispatches" \
+            <<EOF
+          {
+            "ref": "${{ inputs.dispatch_ref }}",
+            "inputs": {
+              "cluster": "${{ inputs.cluster }}",
+              "app_name": "${{ inputs.app }}"
+            },
+            "return_run_details": true
+          }
+          EOF
+          )
+
+          RUN_ID=$(echo "$RESPONSE" | jq -r '.workflow_run_id // empty')
+          if [ -z "$RUN_ID" ]; then
+            echo "::error::Failed to get workflow run ID. Full response: $RESPONSE"
+            exit 1
+          fi
+          RUN_URL=$(echo "$RESPONSE" | jq -r '.html_url // empty')
+          echo "run_id=$RUN_ID" >> $GITHUB_ENV
+          echo "run_url=$RUN_URL" >> $GITHUB_ENV
+          echo "Triggered workflow run: $RUN_ID ($RUN_URL)"
+
+      - name: Wait for triggered workflow to complete
+        env:
+          GH_TOKEN: ${{ secrets.INFRA_DEPLOY_PAT }}
+        run: |
+          API_BASE="https://api.github.com/repos/${{ env.TARGET_REPO }}/actions"
+          AUTH_HEADER="Authorization: Bearer $GH_TOKEN"
+          RUN_ID="${{ env.run_id }}"
+          RUN_URL="${{ env.run_url }}"
+
+          echo "Waiting for run to complete: $RUN_URL"
+          for i in $(seq 1 60); do
+            sleep 15
+            RESPONSE=$(curl --silent \
+              --header "Accept: application/vnd.github.v3+json" \
+              --header "$AUTH_HEADER" \
+              "$API_BASE/runs/$RUN_ID")
+            STATUS=$(echo "$RESPONSE" | jq -r '.status')
+            CONCLUSION=$(echo "$RESPONSE" | jq -r '.conclusion // empty')
+
+            if [ "$STATUS" = "completed" ]; then
+              echo "Workflow completed with conclusion: $CONCLUSION"
+
+              echo "### Infrastructure Deploy" >> $GITHUB_STEP_SUMMARY
+              echo "- Cluster: \`${{ inputs.cluster }}\`" >> $GITHUB_STEP_SUMMARY
+              echo "- App: \`${{ inputs.app }}\`" >> $GITHUB_STEP_SUMMARY
+              echo "- Result: \`$CONCLUSION\`" >> $GITHUB_STEP_SUMMARY
+              echo "- [Workflow run]($RUN_URL)" >> $GITHUB_STEP_SUMMARY
+
+              if [ "$CONCLUSION" != "success" ]; then
+                echo "::error::Triggered workflow finished with conclusion: $CONCLUSION"
+                exit 1
+              fi
+              exit 0
+            fi
+
+            echo "Attempt $i: status=$STATUS"
+          done
+
+          echo "::error::Timed out waiting for workflow run to complete"
+          exit 1
