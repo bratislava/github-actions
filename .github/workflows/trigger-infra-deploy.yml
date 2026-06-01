@@ -18,7 +18,7 @@ on:
         type: string
       app:
         description: >-
-          Application identifier passed to the deploy workflow as app_name.
+          Application identifier passed to the deploy workflow as app.
           Free-form, e.g. "parking_pricing_api" or
           "konto.bratislava.sk/nest_city_account".
         required: true
@@ -55,7 +55,7 @@ jobs:
             "ref": "${{ inputs.dispatch_ref }}",
             "inputs": {
               "cluster": "${{ inputs.cluster }}",
-              "app_name": "${{ inputs.app }}"
+              "app": "${{ inputs.app }}"
             },
             "return_run_details": true
           }
