@@ -1,0 +1,38 @@
+name: Resolve environment
+description: >-
+  Map the triggering git ref (tag) to a deployment environment. Tags prefixed
+  with dev/staging/prod/aws resolve to development/staging/production/aws.
+
+outputs:
+  environment:
+    description: >-
+      Resolved environment (development, staging, production, or aws).
+    value: ${{ steps.resolve.outputs.environment }}
+
+runs:
+  using: composite
+  steps:
+    - name: Map tag to environment
+      id: resolve
+      shell: bash
+      run: |
+        REF="${{ github.ref }}"
+
+        if [[ "$REF" == refs/tags/dev* ]]; then
+          ENV="development"
+        elif [[ "$REF" == refs/tags/staging* ]]; then
+          ENV="staging"
+        elif [[ "$REF" == refs/tags/prod* ]]; then
+          ENV="production"
+        elif [[ "$REF" == refs/tags/aws* ]]; then
+          ENV="aws"
+        else
+          echo "::error::Unable to determine environment from ref: $REF"
+          exit 1
+        fi
+
+        echo "environment=$ENV" >> $GITHUB_OUTPUT
+
+        echo "### Resolve Environment" >> $GITHUB_STEP_SUMMARY
+        echo "- Git ref: \`$REF\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Environment: \`$ENV\`" >> $GITHUB_STEP_SUMMARY
