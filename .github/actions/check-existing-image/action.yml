@@ -1,0 +1,48 @@
+name: Check or re-tag existing image
+description: >-
+  Reuse an existing image when present: re-tag it (when a new tag is given) and
+  report it via `found`, so the caller can skip the build.
+
+inputs:
+  existing_tag:
+    description: Tag (image:<sha>) whose existence decides reuse vs build.
+    required: true
+  new_tag:
+    description: >-
+      Tag to point at the existing image when one is found. Empty = skip
+      re-tagging.
+    required: false
+    default: ""
+
+outputs:
+  found:
+    description: >-
+      'true' when the image already existed (re-tagged, caller should skip the
+      build); 'false' when missing (caller should build).
+    value: ${{ steps.existing.outputs.found }}
+
+runs:
+  using: composite
+  steps:
+    # If the image already exists, reuse it: re-tag it (when a new tag is given)
+    # instead of rebuilding. The caller builds only when `found` is 'false'.
+    - name: Check for existing image
+      id: existing
+      shell: bash
+      run: |
+        EXISTING_TAG="${{ inputs.existing_tag }}"
+        echo "Looking for existing image: $EXISTING_TAG"
+        if docker buildx imagetools inspect "$EXISTING_TAG" > /dev/null 2>&1; then
+          echo "found=true" >> $GITHUB_OUTPUT
+        else
+          echo "found=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Re-tag existing image
+      if: steps.existing.outputs.found == 'true' && inputs.new_tag != ''
+      shell: bash
+      run: |
+        EXISTING_TAG="${{ inputs.existing_tag }}"
+        NEW_TAG="${{ inputs.new_tag }}"
+        echo "Re-tagging existing $EXISTING_TAG -> $NEW_TAG"
+        docker buildx imagetools create -t "$NEW_TAG" "$EXISTING_TAG"

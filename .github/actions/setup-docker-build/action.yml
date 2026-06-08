@@ -1,13 +1,7 @@
 name: Setup Docker build
-description: Resolve Docker cache refs, set up Docker Buildx, and log in to registries
+description: Set up Docker Buildx, log in to registries, and emit metadata-action tag rules
 
 inputs:
-  image:
-    description: Full image name including registry/repository
-    required: true
-  suffixes:
-    description: Newline-delimited cache suffixes to resolve in one call
-    required: true
   docker_registry_username:
     description: Docker Hub username
     required: true
@@ -29,24 +23,27 @@ inputs:
     default: ""
 
 outputs:
-  cache_refs:
-    description: JSON object keyed by suffix with cache_from and cache_to entries
-    value: ${{ steps.cache_ref.outputs.cache_refs }}
+  metadata_tags:
+    description: >-
+      docker/metadata-action `tags:` config block (branch + PR head_ref + sha).
+      Forward into a consumer metadata-action `tags:` input; extend by adding
+      more lines around the interpolation in the consumer's `tags:` block.
+      ---
+      Extend with cluster prefix for "deployment" type tags like so:
+      type=sha,prefix=${{ inputs.cluster && format('{0}-', inputs.cluster) || '' }}
+      ---
+      With this setup you can use the output "version" to cache by per branch,
+      with fallback to sha when not available (in docker/build-and-push-action):
+      cache-from: type=registry,ref=harbor.bratislava.sk/app:cache-${{ steps.meta.outputs.deploy_version }}
+      cache-to: type=registry,ref=harbor.bratislava.sk/app:cache-${{ steps.meta.outputs.deploy_version }},mode=max
+    value: |
+      type=ref,event=branch
+      type=raw,value=${{ github.head_ref }},enable=${{ github.event_name == 'pull_request' }}
+      type=sha,prefix=
 
 runs:
   using: composite
   steps:
-    # Cross-repo composite actions cannot use a local "./" path here: GitHub
-    # resolves "./" relative to the caller's repository, not this one. Pin to
-    # the shared repo by ref instead. Repoint this ref to the released tag
-    # (e.g. @beta / @stable) once this branch is merged.
-    - name: Resolve Docker cache refs
-      id: cache_ref
-      uses: bratislava/github-actions/.github/actions/resolve-cache-refs@add-setup-docker-build-action
-      with:
-        image: ${{ inputs.image }}
-        suffixes: ${{ inputs.suffixes }}
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v4
       with:
