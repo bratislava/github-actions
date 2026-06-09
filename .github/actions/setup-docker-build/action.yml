@@ -28,14 +28,17 @@ outputs:
       docker/metadata-action `tags:` config block (branch + PR head_ref + sha).
       Forward into a consumer metadata-action `tags:` input; extend by adding
       more lines around the interpolation in the consumer's `tags:` block.
+      NOTE: GitHub forbids template expressions in an output description, so the
+      example snippets below use EXPR[...] to denote a "dollar-brace-brace ... brace-brace"
+      GitHub Actions expression.
       ---
       Extend with cluster prefix for "deployment" type tags like so:
-      type=sha,prefix=${{ '${{' }} inputs.cluster && format('{0}-', inputs.cluster) || '' }}
+      type=sha,prefix=EXPR[ inputs.cluster && format('{0}-', inputs.cluster) || '' ]
       ---
       With this setup you can use the output "version" to cache by per branch,
       with fallback to sha when not available (in docker/build-and-push-action):
-      cache-from: type=registry,ref=harbor.bratislava.sk/app:cache-${{ '${{' }} steps.meta.outputs.deploy_version }}
-      cache-to: type=registry,ref=harbor.bratislava.sk/app:cache-${{ '${{' }} steps.meta.outputs.deploy_version }},mode=max
+      cache-from: type=registry,ref=harbor.bratislava.sk/app:cache-EXPR[ steps.meta.outputs.deploy_version ]
+      cache-to: type=registry,ref=harbor.bratislava.sk/app:cache-EXPR[ steps.meta.outputs.deploy_version ],mode=max
     value: |
       type=ref,event=branch
       type=raw,value=${{ github.head_ref }},enable=${{ github.event_name == 'pull_request' }}
