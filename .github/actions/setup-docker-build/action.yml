@@ -30,12 +30,12 @@ outputs:
       more lines around the interpolation in the consumer's `tags:` block.
       ---
       Extend with cluster prefix for "deployment" type tags like so:
-      type=sha,prefix=${{ inputs.cluster && format('{0}-', inputs.cluster) || '' }}
+      type=sha,prefix=${{ '${{' }} inputs.cluster && format('{0}-', inputs.cluster) || '' }}
       ---
       With this setup you can use the output "version" to cache by per branch,
       with fallback to sha when not available (in docker/build-and-push-action):
-      cache-from: type=registry,ref=harbor.bratislava.sk/app:cache-${{ steps.meta.outputs.deploy_version }}
-      cache-to: type=registry,ref=harbor.bratislava.sk/app:cache-${{ steps.meta.outputs.deploy_version }},mode=max
+      cache-from: type=registry,ref=harbor.bratislava.sk/app:cache-${{ '${{' }} steps.meta.outputs.deploy_version }}
+      cache-to: type=registry,ref=harbor.bratislava.sk/app:cache-${{ '${{' }} steps.meta.outputs.deploy_version }},mode=max
     value: |
       type=ref,event=branch
       type=raw,value=${{ github.head_ref }},enable=${{ github.event_name == 'pull_request' }}
