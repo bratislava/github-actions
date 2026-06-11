@@ -1,0 +1,71 @@
+name: Docker metadata
+description: >-
+  Run docker/metadata-action with the shared tag rules (branch + PR head_ref +
+  sha, optionally cluster-prefixed sha) and emit its outputs together with
+  registry cache refs, ready to forward into docker/build-push-action.
+
+inputs:
+  image:
+    description: Fully qualified image name (registry/repository, no tag).
+    required: true
+  prefix:
+    description: >-
+      Optional prefix for an extra sha tag (e.g. cluster prefix `dev-`, `staging-`, `prod-`).
+      Empty = no extra prefixed sha tag.
+    required: false
+    default: ""
+  suffix:
+    description: >-
+      Optional flavor suffix appended to every tag (e.g. `-validate`, `-test`, `-e2e`). Empty = no
+      suffix.
+    required: false
+    default: ""
+
+outputs:
+  version:
+    description: docker/metadata-action `version` output.
+    value: ${{ steps.meta.outputs.version }}
+  tags:
+    description: >-
+      docker/metadata-action `tags` output. Forward into build-push-action
+      `tags:`.
+    value: ${{ steps.meta.outputs.tags }}
+  labels:
+    description: >-
+      docker/metadata-action `labels` output. Forward into build-push-action
+      `labels:`.
+    value: ${{ steps.meta.outputs.labels }}
+  annotations:
+    description: docker/metadata-action `annotations` output.
+    value: ${{ steps.meta.outputs.annotations }}
+  json:
+    description: docker/metadata-action `json` output.
+    value: ${{ steps.meta.outputs.json }}
+  cache_from:
+    description: >-
+      Registry cache sources (master cache + per-version cache). Forward into
+      build-push-action `cache-from:`.
+    value: |
+      type=registry,ref=${{ inputs.image }}:cache-master${{ inputs.suffix }}
+      type=registry,ref=${{ inputs.image }}:cache-${{ steps.meta.outputs.version }}
+  cache_to:
+    description: >-
+      Per-version registry cache export. Forward into build-push-action
+      `cache-to:`.
+    value: type=registry,ref=${{ inputs.image }}:cache-${{ steps.meta.outputs.version }},mode=max
+
+runs:
+  using: composite
+  steps:
+    - name: Docker metadata
+      id: meta
+      uses: docker/metadata-action@v6
+      with:
+        images: ${{ inputs.image }}
+        flavor: |
+          suffix=${{ inputs.suffix }}
+        tags: |
+          type=ref,event=branch
+          type=raw,value=${{ github.head_ref }},enable=${{ github.event_name == 'pull_request' }}
+          type=sha,prefix=
+          type=sha,prefix=${{ inputs.prefix }},enable=${{ inputs.prefix != '' }}
