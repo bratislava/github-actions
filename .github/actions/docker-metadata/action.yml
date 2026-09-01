@@ -48,11 +48,15 @@ outputs:
     value: |
       type=registry,ref=${{ inputs.image }}:cache-master${{ inputs.suffix }}
       type=registry,ref=${{ inputs.image }}:cache-${{ steps.meta.outputs.version }}
+  # zstd rather than the gzip default: compressing and decompressing the
+  # exported layers is a large part of Docker build time in CI, and can take
+  # high tens of seconds for layers our size.
+  # https://depot.dev/blog/building-images-gzip-vs-zstd#comparison-of-compression-times
   cache_to:
     description: >-
       Per-version registry cache export. Forward into build-push-action
       `cache-to:`.
-    value: type=registry,ref=${{ inputs.image }}:cache-${{ steps.meta.outputs.version }},mode=max
+    value: type=registry,ref=${{ inputs.image }}:cache-${{ steps.meta.outputs.version }},mode=max,compression=zstd
 
 runs:
   using: composite
