@@ -31,23 +31,14 @@ jobs:
         run: |
           echo "Pipelines version: 2.4.0"
 
-      - name: Detect changed directories
+      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3.0.4
         id: filter
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
-          script: |
-            // Same outputs as the former dorny/paths-filter step: strapi/next = 'true' when files under that directory changed
-            const { owner, repo } = context.repo;
-            const before = context.payload.before;
-            let files;
-            if (context.payload.pull_request) {
-              files = (await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: context.payload.pull_request.number })).map((f) => f.filename);
-            } else if (before && !/^0+$/.test(before)) {
-              files = (await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${before}...${context.sha}` })).data.files.map((f) => f.filename);
-            } else {
-              files = (await exec.getExecOutput('git', ['diff', '--name-only', 'HEAD~1', 'HEAD'], { ignoreReturnCode: true })).stdout.split('\n');
-            }
-            for (const dir of ['strapi', 'next']) core.setOutput(dir, String(files.some((f) => f.startsWith(`${dir}/`))));
+          filters: |
+            strapi:
+              - 'strapi/**'
+            next:
+              - 'next/**'
   conditions:
     name: Checking build conditions
     needs: changes
