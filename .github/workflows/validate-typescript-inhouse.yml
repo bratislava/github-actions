@@ -36,20 +36,21 @@ jobs:
       run:
         working-directory: ${{ inputs.directory }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.0"
+          echo "Pipelines version: 2.4.0"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{inputs.node}}
+          package-manager-cache: false
 
       - run: yarn --frozen-lockfile
 
       - name: Typescript check
-        uses: EPMatt/reviewdog-action-tsc@v1.7.0
+        uses: EPMatt/reviewdog-action-tsc@63d923a3c5b4497671940b8874f58a404e2351b5 # v1.11.0
         with:
           # Change reviewdog reporter if you need
           # [github-pr-check,github-check,github-pr-review].

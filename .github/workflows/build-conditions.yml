@@ -17,22 +17,31 @@ jobs:
       next: ${{ steps.filter.outputs.next }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.0"
+          echo "Pipelines version: 2.4.0"
 
-      - uses: dorny/paths-filter@v3
+      - name: Detect changed directories
         id: filter
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
-          filters: |
-            strapi:
-              - 'strapi/**'
-            next:
-              - 'next/**'
+          script: |
+            // Same outputs as the former dorny/paths-filter step: strapi/next = 'true' when files under that directory changed
+            const { owner, repo } = context.repo;
+            const before = context.payload.before;
+            let files;
+            if (context.payload.pull_request) {
+              files = (await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: context.payload.pull_request.number })).map((f) => f.filename);
+            } else if (before && !/^0+$/.test(before)) {
+              files = (await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${before}...${context.sha}` })).data.files.map((f) => f.filename);
+            } else {
+              files = (await exec.getExecOutput('git', ['diff', '--name-only', 'HEAD~1', 'HEAD'], { ignoreReturnCode: true })).stdout.split('\n');
+            }
+            for (const dir of ['strapi', 'next']) core.setOutput(dir, String(files.some((f) => f.startsWith(`${dir}/`))));
   conditions:
     name: Checking build conditions
     needs: changes
@@ -46,16 +55,31 @@ jobs:
 
       - name: Print pipeline comment
         if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          header: Build Conditions
-          recreate: true
-          message: |
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          HEADER: "Build Conditions"
+          MODE: recreate
+          MESSAGE: |
             <b> Test build pipeline info :rocket: </b><br/>
             Changes in the code and tag info: <br/>
             :arrow_right: Changes in strapi: <b>${{ needs.changes.outputs.strapi }}</b><br/>
             :arrow_right: Changes in next: <b>${{ needs.changes.outputs.next }}</b><br/>
             We are going to build :ship:
+        with:
+          script: |
+            // Sticky PR comment, compatible with marocchino/sticky-pull-request-comment markers
+            const issue_number = context.issue.number;
+            if (!context.payload.pull_request) return core.info('Not a pull request, skipping comment');
+            const { owner, repo } = context.repo;
+            const marker = `<!-- Sticky Pull Request Comment${process.env.HEADER} -->`;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
+            const prev = comments.find((c) => c.body?.includes(marker));
+            let body = process.env.MESSAGE;
+            if (prev && process.env.MODE === 'append') body = `${prev.body.replace(marker, '').trimEnd()}\n${body}`;
+            body = `${body}\n${marker}`;
+            if (prev && process.env.MODE === 'recreate') await github.rest.issues.deleteComment({ owner, repo, comment_id: prev.id });
+            if (prev && process.env.MODE !== 'recreate') await github.rest.issues.updateComment({ owner, repo, comment_id: prev.id, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body });
 
       - id: strapi
         name: Check for build strapi
@@ -66,12 +90,27 @@ jobs:
 
       - name: Print pipeline comment
         if: needs.changes.outputs.strapi == 'true'
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          header: Build Conditions
-          append: true
-          message: |
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          HEADER: "Build Conditions"
+          MODE: append
+          MESSAGE: |
             :soon: <b>strapi<b><br/>
+        with:
+          script: |
+            // Sticky PR comment, compatible with marocchino/sticky-pull-request-comment markers
+            const issue_number = context.issue.number;
+            if (!context.payload.pull_request) return core.info('Not a pull request, skipping comment');
+            const { owner, repo } = context.repo;
+            const marker = `<!-- Sticky Pull Request Comment${process.env.HEADER} -->`;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
+            const prev = comments.find((c) => c.body?.includes(marker));
+            let body = process.env.MESSAGE;
+            if (prev && process.env.MODE === 'append') body = `${prev.body.replace(marker, '').trimEnd()}\n${body}`;
+            body = `${body}\n${marker}`;
+            if (prev && process.env.MODE === 'recreate') await github.rest.issues.deleteComment({ owner, repo, comment_id: prev.id });
+            if (prev && process.env.MODE !== 'recreate') await github.rest.issues.updateComment({ owner, repo, comment_id: prev.id, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body });
 
       - id: next
         name: Check for build next
@@ -82,25 +121,56 @@ jobs:
 
       - name: Print pipeline comment
         if: needs.changes.outputs.next == 'true'
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          header: Build Conditions
-          append: true
-          message: |
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          HEADER: "Build Conditions"
+          MODE: append
+          MESSAGE: |
             :soon: <b>next<b><br/>
+        with:
+          script: |
+            // Sticky PR comment, compatible with marocchino/sticky-pull-request-comment markers
+            const issue_number = context.issue.number;
+            if (!context.payload.pull_request) return core.info('Not a pull request, skipping comment');
+            const { owner, repo } = context.repo;
+            const marker = `<!-- Sticky Pull Request Comment${process.env.HEADER} -->`;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
+            const prev = comments.find((c) => c.body?.includes(marker));
+            let body = process.env.MESSAGE;
+            if (prev && process.env.MODE === 'append') body = `${prev.body.replace(marker, '').trimEnd()}\n${body}`;
+            body = `${body}\n${marker}`;
+            if (prev && process.env.MODE === 'recreate') await github.rest.issues.deleteComment({ owner, repo, comment_id: prev.id });
+            if (prev && process.env.MODE !== 'recreate') await github.rest.issues.updateComment({ owner, repo, comment_id: prev.id, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body });
 
       - name: Print pipeline comment
         if: env.COUNT == 0
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          recreate: true
-          message: |
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          HEADER: ""
+          MODE: recreate
+          MESSAGE: |
             :heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline.
+        with:
+          script: |
+            // Sticky PR comment, compatible with marocchino/sticky-pull-request-comment markers
+            const issue_number = context.issue.number;
+            if (!context.payload.pull_request) return core.info('Not a pull request, skipping comment');
+            const { owner, repo } = context.repo;
+            const marker = `<!-- Sticky Pull Request Comment${process.env.HEADER} -->`;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
+            const prev = comments.find((c) => c.body?.includes(marker));
+            let body = process.env.MESSAGE;
+            if (prev && process.env.MODE === 'append') body = `${prev.body.replace(marker, '').trimEnd()}\n${body}`;
+            body = `${body}\n${marker}`;
+            if (prev && process.env.MODE === 'recreate') await github.rest.issues.deleteComment({ owner, repo, comment_id: prev.id });
+            if (prev && process.env.MODE !== 'recreate') await github.rest.issues.updateComment({ owner, repo, comment_id: prev.id, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body });
 
       - id: conditions-count-zero
         name: Checking if there is only zero condition true
         if: env.COUNT == 0
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             core.notice(':heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline.')
