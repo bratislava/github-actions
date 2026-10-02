@@ -86,13 +86,13 @@ jobs:
         working-directory: ${{ inputs.directory }}
     steps:
       - name: Checking out
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: ${{ inputs.fetch-depth }}
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.4"
+          echo "Pipelines version: 2.4.0"
 
       - name: Directory check
         run: pwd
@@ -109,7 +109,7 @@ jobs:
 
       - name: Login to Harbor
         if: ${{ steps.harbor-check.outputs.available == 'true' }}
-        uses: docker/login-action@v3.1.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ${{ inputs.registry }}
           username: ${{ inputs.username }}
@@ -127,7 +127,7 @@ jobs:
 
       - name: Login to Docker
         if: ${{ steps.docker-check.outputs.available == 'true' }}
-        uses: docker/login-action@v3.1.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ inputs.docker-username }}
           password: ${{ secrets.docker-pass }}
@@ -138,9 +138,10 @@ jobs:
           echo ":arrow_right: Project folder: **${{ inputs.directory }}**" >> $GITHUB_STEP_SUMMARY
 
       - name: Install Prerequisites - Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "20"
+          package-manager-cache: false
 
       - name: Installing Bratiska-cli version
         run: |
@@ -157,31 +158,3 @@ jobs:
       - name: Print pipeline summary - image build
         run: |
           echo ":partying_face: Bratiska-cli successfully built an image from path: ${{ inputs.directory }}" >> $GITHUB_STEP_SUMMARY
-
-      - name: Print pipeline comment - image build
-        if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          header: Build Conditions
-          append: true
-          message: |
-            :partying_face: Bratiska-cli successfully built an image from path: ${{ inputs.directory }}
-
-      - name: Check for Slack secret availability
-        if: always()
-        id: slack-check
-        shell: bash
-        run: |
-          if [ "${{ secrets.slack-token }}" != '' ]; then
-          echo "available=true" >> $GITHUB_OUTPUT;
-          else
-          echo "available=false" >> $GITHUB_OUTPUT;
-          fi
-
-      - name: Slack Report
-        if: ${{ always() && steps.slack-check.outputs.available == 'true' }}
-        uses: kpritam/slack-job-status-action@v1
-        with:
-          job-status: ${{ job.status }}
-          slack-bot-token: ${{ secrets.slack-token }}
-          channel: ${{ inputs.slack-channel }}

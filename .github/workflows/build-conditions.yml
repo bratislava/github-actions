@@ -17,15 +17,15 @@ jobs:
       next: ${{ steps.filter.outputs.next }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.0"
+          echo "Pipelines version: 2.4.0"
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3.0.4
         id: filter
         with:
           filters: |
@@ -43,35 +43,12 @@ jobs:
       strapi: ${{ steps.strapi.outputs.condition }}
       next: ${{ steps.next.outputs.condition }}
     steps:
-
-      - name: Print pipeline comment
-        if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          header: Build Conditions
-          recreate: true
-          message: |
-            <b> Test build pipeline info :rocket: </b><br/>
-            Changes in the code and tag info: <br/>
-            :arrow_right: Changes in strapi: <b>${{ needs.changes.outputs.strapi }}</b><br/>
-            :arrow_right: Changes in next: <b>${{ needs.changes.outputs.next }}</b><br/>
-            We are going to build :ship:
-
       - id: strapi
         name: Check for build strapi
         if: needs.changes.outputs.strapi == 'true'
         run: |
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "condition=true" >> $GITHUB_OUTPUT
-
-      - name: Print pipeline comment
-        if: needs.changes.outputs.strapi == 'true'
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          header: Build Conditions
-          append: true
-          message: |
-            :soon: <b>strapi<b><br/>
 
       - id: next
         name: Check for build next
@@ -80,29 +57,10 @@ jobs:
           echo "COUNT=$(($COUNT+1))" >> $GITHUB_ENV
           echo "condition=true" >> $GITHUB_OUTPUT
 
-      - name: Print pipeline comment
-        if: needs.changes.outputs.next == 'true'
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          header: Build Conditions
-          append: true
-          message: |
-            :soon: <b>next<b><br/>
-
-      - name: Print pipeline comment
-        if: env.COUNT == 0
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          recreate: true
-          message: |
-            :heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline.
-
       - id: conditions-count-zero
         name: Checking if there is only zero condition true
         if: env.COUNT == 0
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             core.notice(':heavy_exclamation_mark: We have zero builds based on conditions. Exiting pipeline.')
-
-

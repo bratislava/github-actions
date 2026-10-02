@@ -44,15 +44,15 @@ jobs:
       next: ${{ steps.filter.outputs.next }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.0"
+          echo "Pipelines version: 2.4.0"
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3.0.4
         id: filter
         with:
           filters: |
@@ -171,7 +171,7 @@ jobs:
       - id: conditions-count-two
         name: Checking if there is only one condition true
         if: env.COUNT > 1
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             core.setFailed('There can be only one deployment to cluster. Now we have more then one. You have probably different affected files and different tag.')
@@ -179,7 +179,7 @@ jobs:
       - id: conditions-count-zero
         name: Checking if there is only zero condition true
         if: env.COUNT == 0
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             core.setFailed(':heavy_exclamation_mark: We have zero deployments based on conditions. Exiting pipeline with Fail status.')

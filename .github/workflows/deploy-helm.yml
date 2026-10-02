@@ -63,13 +63,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checking out
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - id: unsupported-command
         if: inputs.command != 'install' && inputs.command != 'upgrade' && inputs.command != 'uninstall'
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             core.setFailed(':heavy_exclamation_mark: Unsupported helm command. Only `install`, `upgrade` and `uninstall` are supported. Exiting pipeline with Fail status.')
@@ -81,13 +81,13 @@ jobs:
 
       - name: Pipelines Version
         run: |
-          echo "Pipelines version: 2.3.0"
+          echo "Pipelines version: 2.4.0"
 
       - name: Directory check
         run: pwd
 
       - name: Kubectl tool installer
-        uses: Azure/setup-kubectl@v4.0.0
+        uses: Azure/setup-kubectl@3e0aec4d80787158d308d7b364cb1b702e7feb7f # v4.0.0
 
       - name: Kubernetes set service account token
         # to obtain token run: kubectl get secret <service account secret> -n=standalone -o jsonpath='{.data.token}' | base64 --decode  > token.tmp
@@ -103,7 +103,7 @@ jobs:
         run: kubectl config use-context ${{ inputs.cluster }}
 
       - name: Helm tool installer
-        uses: azure/setup-helm@v4.1.0
+        uses: azure/setup-helm@b7246b12e77f7134dc2d460a3d5bad15bbe29390 # v4.1.0
 
       - name: Helm version
         run: helm version
@@ -155,22 +155,17 @@ jobs:
           echo "###  Pipeline summary :ship:" >> $GITHUB_STEP_SUMMARY
           echo ":partying_face: Helm successfully ${{ inputs.command }}ed **${{ inputs.instance }}** to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Print pipeline comment
-        if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2.9.0
-        with:
-          message: |
-            ${{ env.GITHUB_STEP_SUMMARY }}
-
       - name: Release
-        uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RELEASE_NAME: ${{ inputs.instance }} ${{ inputs.command }} to ${{inputs.cluster}} with app version ${{ env.APPVERSION }} and chart ${{ env.CHVERSION }}
         with:
-          name: ${{ inputs.instance }} ${{ inputs.command }} to ${{inputs.cluster}} with app version ${{ env.APPVERSION }} and chart ${{ env.CHVERSION }}
-          body: |
-            ${{ env.GITHUB_STEP_SUMMARY }}
-          generate_release_notes: false
-          draft: false
-          prerelease: false
+          script: |
+            // Create the release for this tag, or update it if it already exists
+            const { owner, repo } = context.repo;
+            const tag = context.ref.replace('refs/tags/', '');
+            const release = { owner, repo, name: process.env.RELEASE_NAME, body: require('fs').readFileSync(process.env.GITHUB_STEP_SUMMARY, 'utf8'), draft: false, prerelease: false };
+            const existing = await github.rest.repos.getReleaseByTag({ owner, repo, tag }).catch((e) => (e.status === 404 ? null : Promise.reject(e)));
+            if (existing) await github.rest.repos.updateRelease({ ...release, release_id: existing.data.id });
+            else await github.rest.repos.createRelease({ ...release, tag_name: tag });
