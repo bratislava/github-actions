@@ -155,29 +155,6 @@ jobs:
           echo "###  Pipeline summary :ship:" >> $GITHUB_STEP_SUMMARY
           echo ":partying_face: Helm successfully ${{ inputs.command }}ed **${{ inputs.instance }}** to ${{ inputs.cluster }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Print pipeline comment
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          HEADER: ""
-          MODE: replace
-        with:
-          script: |
-            // Sticky PR comment, compatible with marocchino/sticky-pull-request-comment markers
-            const issue_number = context.issue.number;
-            if (!context.payload.pull_request) return core.info('Not a pull request, skipping comment');
-            const { owner, repo } = context.repo;
-            const marker = `<!-- Sticky Pull Request Comment${process.env.HEADER} -->`;
-            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
-            const prev = comments.find((c) => c.body?.includes(marker));
-            // The step summary written above is the comment body
-            let body = require('fs').readFileSync(process.env.GITHUB_STEP_SUMMARY, 'utf8');
-            if (prev && process.env.MODE === 'append') body = `${prev.body.replace(marker, '').trimEnd()}\n${body}`;
-            body = `${body}\n${marker}`;
-            if (prev && process.env.MODE === 'recreate') await github.rest.issues.deleteComment({ owner, repo, comment_id: prev.id });
-            if (prev && process.env.MODE !== 'recreate') await github.rest.issues.updateComment({ owner, repo, comment_id: prev.id, body });
-            else await github.rest.issues.createComment({ owner, repo, issue_number, body });
-
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0

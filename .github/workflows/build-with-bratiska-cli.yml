@@ -151,27 +151,3 @@ jobs:
       - name: Print pipeline summary - image build
         run: |
           echo ":partying_face: Bratiska-cli successfully built an image from path: ${{ inputs.directory }}" >> $GITHUB_STEP_SUMMARY
-
-      - name: Print pipeline comment - image build
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          HEADER: "Build Conditions"
-          MODE: append
-          MESSAGE: |
-            :partying_face: Bratiska-cli successfully built an image from path: ${{ inputs.directory }}
-        with:
-          script: |
-            // Sticky PR comment, compatible with marocchino/sticky-pull-request-comment markers
-            const issue_number = context.issue.number;
-            if (!context.payload.pull_request) return core.info('Not a pull request, skipping comment');
-            const { owner, repo } = context.repo;
-            const marker = `<!-- Sticky Pull Request Comment${process.env.HEADER} -->`;
-            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
-            const prev = comments.find((c) => c.body?.includes(marker));
-            let body = process.env.MESSAGE;
-            if (prev && process.env.MODE === 'append') body = `${prev.body.replace(marker, '').trimEnd()}\n${body}`;
-            body = `${body}\n${marker}`;
-            if (prev && process.env.MODE === 'recreate') await github.rest.issues.deleteComment({ owner, repo, comment_id: prev.id });
-            if (prev && process.env.MODE !== 'recreate') await github.rest.issues.updateComment({ owner, repo, comment_id: prev.id, body });
-            else await github.rest.issues.createComment({ owner, repo, issue_number, body });
