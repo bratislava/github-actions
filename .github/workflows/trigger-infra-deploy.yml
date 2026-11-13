@@ -36,7 +36,7 @@ env:
 jobs:
   trigger-deploy:
     name: Deploy to ${{ inputs.cluster }}
-    runs-on: bratislava
+    runs-on: bratislava-rootless
     environment: ${{ inputs.cluster }}
     steps:
       - name: Trigger infrastructure deployment
